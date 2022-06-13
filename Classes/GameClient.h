@@ -2,7 +2,6 @@
 #define __GAME_CLIENT_H__
 
 #include "cocos2d.h"
-#include "ODSocket/ODSocket.h"
 #include "Tank.h"
 #include "Brick.h"
 USING_NS_CC;
