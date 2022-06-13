@@ -1,7 +1,4 @@
 #include "GameClient.h"
-#include "NetClient.h"
-#include "Msg/TankMoveMsg.h"
-#include "Msg/FireMsg.h"
 
 GameClient::GameClient()
 {
@@ -35,11 +32,6 @@ bool GameClient::init()
 	key_listener->onKeyPressed = CC_CALLBACK_2(GameClient::onKeyPressed, this);
 	key_listener->onKeyReleased = CC_CALLBACK_2(GameClient::onKeyReleased, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
-
-	// 网络
-	auto _netclient = NetClient::create(this);
-	_netclient->connect("45.32.15.229", 8888); // 连接到服务器
-	_netclient->setTag(NET_TAG);
 
 	this->addChild(m_tank);
 	m_drawList.pushBack(m_tank); // 联网后再加入，因为ID由服务器分配
@@ -269,38 +261,29 @@ void GameClient::drawBigBG(Vec2 position)
 
 void GameClient::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
 {
-	auto _netclient = (NetClient*)getChildByTag(NET_TAG);
 	switch (keyCode)
 	{
 	case cocos2d::EventKeyboard::KeyCode::KEY_A:
 		{
 			m_tank->MoveLeft();
-			auto msg = new TankMoveMsg(this, TANK_LEFT, false);
-			_netclient->send(msg);  // 发送坦克移动消息
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_W:
 		// m_tank->MoveUP();
 		{
 			m_tank->MoveUP();
-			auto msg = new TankMoveMsg(this, TANK_UP, false);
-			_netclient->send(msg);  // 发送坦克移动消息
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_S:
 		// m_tank->MoveDown();
 		{
 			m_tank->MoveDown();
-			auto msg = new TankMoveMsg(this, TANK_DOWN, false);
-			_netclient->send(msg);  // 发送坦克移动消息
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_D:
 		// m_tank->MoveRight();
 		{
 			m_tank->MoveRight();
-			auto msg = new TankMoveMsg(this, TANK_RIGHT, false);
-			_netclient->send(msg);  // 发送坦克移动消息
 		}
 		break;
 	}
@@ -308,42 +291,31 @@ void GameClient::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
 
 void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 {
-	auto _netclient = (NetClient*)getChildByTag(NET_TAG);
 	switch (keyCode)
 	{
 	case cocos2d::EventKeyboard::KeyCode::KEY_A:
 		{
 			m_tank->Stay(TANK_LEFT);
-			auto msg = new TankMoveMsg(this, TANK_LEFT, true);
-			_netclient->send(msg);  // 发送坦克停下消息
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_W:
 		{
 			m_tank->Stay(TANK_UP);
-			auto msg = new TankMoveMsg(this, TANK_UP, true);
-			_netclient->send(msg);  // 发送坦克停下消息
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_S:
 		{
 			m_tank->Stay(TANK_DOWN);
-			auto msg = new TankMoveMsg(this, TANK_DOWN, true);
-			_netclient->send(msg);  // 发送坦克停下消息
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_D:
 		{
 			m_tank->Stay(TANK_RIGHT);
-			auto msg = new TankMoveMsg(this, TANK_RIGHT, true);
-			_netclient->send(msg);  // 发送坦克停下消息
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_K:
 		{
 			m_tank->Fire();
-			auto msg = new FireMsg(this);
-			_netclient->send(msg);  // 发送开火消息
 		}
 		break;
 	}

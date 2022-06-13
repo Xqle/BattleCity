@@ -124,6 +124,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     director->runWithScene(scene);
 
     return true;
+
 }
 
 // This function will be called when the app is inactive. Note, when receiving a phone call it is invoked.
