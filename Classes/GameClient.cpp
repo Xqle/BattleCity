@@ -1,5 +1,7 @@
 #include "GameClient.h"
-
+#include "ui/CocosGUI.h"
+using namespace cocos2d::ui;
+using namespace cocostudio;
 GameClient::GameClient()
 {
 
@@ -37,6 +39,13 @@ bool GameClient::init()
 	m_drawList.pushBack(m_tank); // 联网后再加入，因为ID由服务器分配
 
 	m_shouldFireList.clear();
+
+
+	// UI
+	auto gameUI = GUIReader::getInstance()->widgetFromJsonFile("gameUI/gameUI.json");
+	addChild(gameUI, 100);
+
+	// UI 下的BUTTON
 
 	return true;
 }
@@ -88,10 +97,11 @@ void GameClient::update(float delta)
 	// TODO 碰撞检测
 	// 坦克与 坦克，物品的碰撞检测
 	for (int i = 0; i < m_tankList.size(); i++)
-	{
+	{			
+		auto nowTank = m_tankList.at(i);
 		for (int j = 0; j < m_bgList.size(); j++)
 		{
-			auto nowTank = m_tankList.at(i);
+
 			auto nowBrick = m_bgList.at(j);
 			if (nowTank->getLife() && (nowTank->getRect().intersectsRect(nowBrick->getRect())) && (nowTank->getDirection() == TANK_UP))
 			{
@@ -192,7 +202,16 @@ void GameClient::update(float delta)
 					m_deleteBulletList.pushBack(bullet);
 
 					// 砖块消除
-					m_deleteBrickList.pushBack(brick);
+					if (nowTank->level > 1)
+					{
+						m_deleteBrickList.pushBack(brick);
+					}
+					else
+					{
+						if(!brick->is_highLevel)
+							m_deleteBrickList.pushBack(brick);
+
+					}
 				}
 			}
 		}
@@ -226,6 +245,8 @@ void GameClient::update(float delta)
 		m_deleteBulletList.clear();
 		m_deleteBrickList.clear();
 		m_deleteTankList.clear();
+
+		//if(nowTank->getRect().intersectsRect())
 	}
 }
 
@@ -276,6 +297,7 @@ void GameClient::drawBigBG(Vec2 position)
 	}
 }
 
+// 绘制白色砖块 dir == 1为竖向 dir == 0为横向 length 为块的长度
 void GameClient::drawBigBG_HighLevel(Vec2 position, int dir, int length)
 {
 	if (dir == 1) // 竖向
@@ -363,6 +385,11 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 	{
 		m_tank->Fire();
 	}
+	case cocos2d::EventKeyboard::KeyCode::KEY_F:
+	{
+		m_tank->Flash();
+	}
+
 	break;
 	}
 }
@@ -378,4 +405,17 @@ void GameClient::addTank(int id, float x, float y, int dir, int kind)
 void GameClient::addFire(Tank* tank)
 {
 	m_shouldFireList.pushBack(tank);
+}
+
+void GameClient::pressPauseButton(Ref* pSender, Widget::TouchEventType type)
+{
+
+}
+void GameClient::pressPlayButton(Ref* pSender, Widget::TouchEventType type)
+{
+
+}
+void GameClient::pressReplayButton(Ref* pSender, Widget::TouchEventType type)
+{
+
 }

@@ -16,11 +16,11 @@ public:
 
 	// get
 	Rect getRect() { return m_rect; };
-
+	bool is_highLevel; // 是否为高级砖块
 private:
 	Sprite* m_sprite;  // 砖块精灵
 	Rect m_rect;       // 包围框
-	bool is_highLevel; // 是否为高级砖块
+
 };
 
 #endif

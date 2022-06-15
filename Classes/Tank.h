@@ -30,9 +30,10 @@ public:
 	void MoveLeft();
 	void MoveRight();
 	void Fire();
+	void Flash(); // 坦克闪现，有一定概率不能穿墙
 	void Stay(int dir);
 	void Blast();     // 爆炸时已自动设置life为0
-
+	int level;
 	bool isMoving() { return m_isMoving; };
 	Rect getRect() { return m_rect; };
 	Vector<Bullet*> getBulletList() { return m_bulletList; };
@@ -41,6 +42,7 @@ private:
 	void Draw();
 	void update(float t);
 	void deleteObj(Sprite* obj);
+	bool hidden;
 
 private:
 	Sprite*     m_sprite;          // 图片精灵

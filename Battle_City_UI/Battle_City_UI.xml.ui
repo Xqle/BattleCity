@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<UIProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <filePath>D:\game_develop\FINAL\finalgame\Battle_City_UI\Battle_City_UI.xml.ui</filePath>
+  <Version>1.2.0.0</Version>
+  <Name>Battle_City_UI</Name>
+  <ProjectDir>D:\game_develop\FINAL\finalgame\Battle_City_UI</ProjectDir>
+  <JsonFileName>Battle_City_UI.json</JsonFileName>
+  <Resources>D:\game_develop\FINAL\finalgame\Battle_City_UI\Resources</Resources>
+  <JsonFolder>D:\game_develop\FINAL\finalgame\Battle_City_UI\Json</JsonFolder>
+  <JsonList>
+    <string>gameUI.json</string>
+  </JsonList>
+  <imageFileList />
+  <JsonSuffix>.json</JsonSuffix>
+  <CurrentUIJson>gameUI.json</CurrentUIJson>
+  <CanvasSize>
+    <Width>1024</Width>
+    <Height>768</Height>
+  </CanvasSize>
+</UIProject>

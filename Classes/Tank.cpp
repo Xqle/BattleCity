@@ -31,9 +31,9 @@ bool Tank::init(int ID, float x, float y, int dir, int kind)
 	m_moveDown = FALSE;
 	m_moveRight = FALSE;
 	m_moveLeft = FALSE;
-
+	hidden = false;
 	m_isMoving = false;
-
+	level = 1;
 	m_frametime = 2.0;
 	m_temptime = 0;
 
@@ -145,6 +145,32 @@ void Tank::Fire()
 	auto bullet = Bullet::create(position, 3, this->getDirection());
 	m_bulletList.pushBack(bullet);            // 添加到子弹列表
 	this->getParent()->addChild(bullet, 8);   // 添加到游戏场景
+}
+
+// 坦克闪现，有一定概率不能穿墙
+void Tank::Flash()
+{
+	int dis = 100;
+	Vec2 position;
+	switch (this->getDirection())
+	{
+	case TANK_UP:
+		position = Vec2(this->getPositionX(), this->getPositionY() + dis);
+		break;
+	case TANK_DOWN:
+		position = Vec2(this->getPositionX(), this->getPositionY() - dis);
+		break;
+	case TANK_LEFT:
+		position = Vec2(this->getPositionX() - dis, this->getPositionY());
+		break;
+	case TANK_RIGHT:
+		position = Vec2(this->getPositionX() + dis, this->getPositionY());
+		break;
+	}
+
+	this->runAction(MoveTo::create(0.1f, position));
+	return;
+
 }
 
 void Tank::Draw()

@@ -7,6 +7,7 @@
 USING_NS_CC;
 using namespace cocos2d;
 
+
 static int tankcount = 0;     // 记录当前坦克数
 static int NET_TAG = 11111;   
 
@@ -31,6 +32,10 @@ public:
 	// 实现键盘回调
 	void onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event);
 	void onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event); 
+
+	void pressPlayButton(Ref* pSender, Widget::TouchEventType type);
+	void pressReplayButton(Ref* pSender, Widget::TouchEventType type);
+	void pressPauseButton(Ref* pSender, Widget::TouchEventType type);
 
 	// get
 	Tank* getTank() { return m_tank; };
