@@ -22,6 +22,7 @@ public:
 	void createBackGround();
 	void update(float delta);
 	void drawBigBG(Vec2 position);
+	void drawBigBG_HighLevel(Vec2 position, int dir, int length);
 
 	// 对网络传来的消息作出响应
 	void addTank(int id, float x, float y, int dir, int kind);

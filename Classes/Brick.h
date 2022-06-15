@@ -10,8 +10,8 @@ class Brick : public Sprite
 public:
 	Brick();
 	~Brick();
-	static Brick* create(Vec2 position);
-	virtual bool init(Vec2 position);
+	static Brick* create(Vec2 position, bool _is_highLevel);
+	virtual bool init(Vec2 position, bool _is_highLevel);
 	void Blast();
 
 	// get
@@ -20,6 +20,7 @@ public:
 private:
 	Sprite* m_sprite;  // 砖块精灵
 	Rect m_rect;       // 包围框
+	bool is_highLevel; // 是否为高级砖块
 };
 
 #endif

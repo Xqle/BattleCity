@@ -17,7 +17,8 @@ Bullet* Bullet::create(Vec2 position, float speed, int dir)
 	{
 		pRet->autorelease();
 		return pRet;
-	} else
+	}
+	else
 	{
 		delete pRet;
 		pRet = NULL;
@@ -35,16 +36,16 @@ bool Bullet::init(Vec2 position, float speed, int dir)
 	switch (dir)
 	{
 	case BULLET_UP:
-		m_sprite = Sprite::createWithTexture(m_texture, Rect(  0, 0, 8, 8));
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(0, 0, 8, 8));
 		break;
 	case BULLET_DOWN:
-		m_sprite = Sprite::createWithTexture(m_texture, Rect(8*2, 0, 8, 8));
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(8 * 2, 0, 8, 8));
 		break;
 	case BULLET_LEFT:
-		m_sprite = Sprite::createWithTexture(m_texture, Rect(8*3, 0, 8, 8));
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(8 * 3, 0, 8, 8));
 		break;
 	case BULLET_RIGHT:
-		m_sprite = Sprite::createWithTexture(m_texture, Rect(  8, 0, 8, 8));
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(8, 0, 8, 8));
 		break;
 	}
 	m_sprite->setPosition(Vec2::ZERO);
@@ -72,7 +73,8 @@ void Bullet::update(float delta)
 		if (this->getPositionY() <= WINDOWHEIGHT - 10)
 		{
 			this->setPositionY(this->getPositionY() + this->getSpeed());
-		} else
+		}
+		else
 		{
 			Blast();
 		}
@@ -82,7 +84,8 @@ void Bullet::update(float delta)
 		if (this->getPositionY() >= 10)
 		{
 			this->setPositionY(this->getPositionY() - this->getSpeed());
-		} else
+		}
+		else
 		{
 			Blast();
 		}
@@ -92,7 +95,8 @@ void Bullet::update(float delta)
 		if (this->getPositionX() >= 10)
 		{
 			this->setPositionX(this->getPositionX() - this->getSpeed());
-		} else
+		}
+		else
 		{
 			Blast();
 		}
@@ -102,7 +106,8 @@ void Bullet::update(float delta)
 		if (this->getPositionX() <= WINDOWWIDTH - 10)
 		{
 			this->setPositionX(this->getPositionX() + this->getSpeed());
-		} else
+		}
+		else
 		{
 			Blast();
 		}
@@ -121,7 +126,7 @@ void Bullet::Blast()
 		FadeOut::create(0.1f),                   // ±¬Õ¨ÏûÊ§
 		CallFunc::create(CC_CALLBACK_0(Bullet::deleteObj, this, explode)),
 		NULL
-		));
+	));
 }
 
 void Bullet::deleteObj(Sprite* obj)
