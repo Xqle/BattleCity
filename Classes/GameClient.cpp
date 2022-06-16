@@ -2,6 +2,8 @@
 #include "ui/CocosGUI.h"
 using namespace cocos2d::ui;
 using namespace cocostudio;
+
+Label* tank_pos = NULL;
 GameClient::GameClient()
 {
 
@@ -45,7 +47,10 @@ bool GameClient::init()
 	auto gameUI = GUIReader::getInstance()->widgetFromJsonFile("gameUI/gameUI.json");
 	addChild(gameUI, 100);
 
+
+
 	// UI 下的BUTTON
+
 
 	return true;
 }
@@ -60,6 +65,7 @@ Scene* GameClient::createScene()
 
 void GameClient::update(float delta)
 {
+	Tank* t_debug = NULL;
 	// 收到传来的开火消息的坦克执行Fire
 	if (m_shouldFireList.size() > 0)
 	{
@@ -99,6 +105,7 @@ void GameClient::update(float delta)
 	for (int i = 0; i < m_tankList.size(); i++)
 	{			
 		auto nowTank = m_tankList.at(i);
+		t_debug = nowTank;
 		for (int j = 0; j < m_bgList.size(); j++)
 		{
 
@@ -248,22 +255,60 @@ void GameClient::update(float delta)
 
 		//if(nowTank->getRect().intersectsRect())
 	}
+
+	std::string tankX = std::to_string(t_debug->getRect().getMidX());
+	std::string tankY = std::to_string(t_debug->getRect().getMidY());
+	std::string print_string = tankX + " " + tankY;
+
+	if (tank_pos == NULL)
+	{
+		tank_pos = Label::createWithTTF(print_string, "fonts/arial.ttf", 20);
+		tank_pos->setPosition(Vec2(150, 400));
+	this->addChild(tank_pos, 1);
+	}
+	tank_pos->setString(print_string);
+
 }
 
-// 绘制4个回字砖块
+
 void GameClient::createBackGround()
 {
 	auto map = TMXTiledMap::create("Chapter12/tank/map.tmx");
-	this->addChild(map, 10);
-	int x, y;
 
+	this->addChild(map, 10);
+
+	auto forest_layer = map->getLayer("forest");
+	auto brick_layer = map->getLayer("brick");
+
+	// 60 × 40 的矩阵
+	block_status = new tileBlock * [60];
+	for (int i = 0; i < 60; i++)
+	{
+		block_status[i] = new tileBlock[40];
+	}
+
+	for (int i = 0; i < 60; i++)
+	{
+		for (int j = 0; j < 40; j++)
+		{
+			if (forest_layer->getTileGIDAt(Vec2(i, j)) == 5) // tiled 中的GID +1 即forest图块
+			{
+
+			}
+			if (brick_layer->getTileGIDAt(Vec2(i, j)) == 1) // 普通砖块
+			{
+
+			}
+			if (brick_layer->getTileGIDAt(Vec2(i, j)) == 3) // 高级方块
+			{
+
+			}
+		}
+	}
 
 	drawBigBG(Vec2(16 * 16, 5 * 16));
-	x = 16;
-	y = 43;
 	drawBigBG(Vec2(20 * 16, 20 * 16));
 
-	x = 45;
 	//drawBigBG(Vec2(x * 16, y * 16));
 
 	drawBigBG_HighLevel(Vec2(45 * 16, 8 * 16), 1, 8);
@@ -417,5 +462,8 @@ void GameClient::pressPlayButton(Ref* pSender, Widget::TouchEventType type)
 }
 void GameClient::pressReplayButton(Ref* pSender, Widget::TouchEventType type)
 {
-
+	if (type == ui::Widget::TouchEventType::ENDED)
+	{
+		Director::getInstance()->replaceScene(CCTransitionCrossFade::create(0.5f, this->createScene()));
+	}
 }

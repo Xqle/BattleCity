@@ -7,6 +7,15 @@
 USING_NS_CC;
 using namespace cocos2d;
 
+enum tileBlock
+{
+	highLevelBrick, // 高级砖块
+	forest,
+	lake,
+	empty,
+	brick			// 普通砖块
+};// 地图快属性
+
 
 static int tankcount = 0;     // 记录当前坦克数
 static int NET_TAG = 11111;   
@@ -40,7 +49,7 @@ public:
 	// get
 	Tank* getTank() { return m_tank; };
 	Vector<Tank*> getTankList() { return m_tankList; };
-
+	tileBlock** block_status;	// 地图块的属性矩阵
 private:
 	Vector<Brick*>  m_bgList;     // 背景块列表
 	Vector<Tank*>   m_tankList;   // 坦克列表
