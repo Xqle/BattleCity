@@ -1,4 +1,6 @@
 #include "GameClient.h"
+#include <algorithm>
+#include <cstdlib>
 
 GameClient::GameClient()
 {
@@ -21,22 +23,22 @@ bool GameClient::init()
 	createBackGround();
 
 	// 玩家
-	m_tank = Tank::create(110, WINDOWWIDTH/2, 100, 1, 2);
+	m_tank = Tank::create(PLAYER_TAG, WINDOWWIDTH / 2, 100, TANK_UP, 2);
 	m_tankList.pushBack(m_tank);
+	this->addChild(m_tank);
+
+	// AI
+	AI_init();
 
 	// 碰撞检测
 	this->scheduleUpdate();
 
 	// 键盘事件
+	memset(keys, 0, sizeof keys);
 	auto key_listener = EventListenerKeyboard::create();
 	key_listener->onKeyPressed = CC_CALLBACK_2(GameClient::onKeyPressed, this);
 	key_listener->onKeyReleased = CC_CALLBACK_2(GameClient::onKeyReleased, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
-
-	this->addChild(m_tank);
-	m_drawList.pushBack(m_tank); // 联网后再加入，因为ID由服务器分配
-
-	m_shouldFireList.clear(); 
 
 	return true;
 }
@@ -49,43 +51,74 @@ Scene* GameClient::createScene()
 	return scene;
 }
 
+void GameClient::AI_init()
+{
+	AI_update_delta = 0;
+	AI_next_offset = 0;
+	AI_remain_num = MAX_AI_NUM;
+	AI_ingame_num = 0;
+	for (int i = 0; i < MAX_INGAME_AI_NUM; i++)
+	{
+		auto AI_tank = Tank::create(AI_TAG + AI_next_offset, AI_spawnpointX[i], AI_spawnpointY, TANK_RIGHT - i, 1);
+		m_tankList.pushBack(AI_tank);
+		AI_next_offset++;
+		AI_ingame_num++;
+		this->addChild(AI_tank);
+	}
+}
+
+void GameClient::AI_fill()
+{
+	if (AI_remain_num < MAX_INGAME_AI_NUM) return;	// 剩余AI数量不足
+
+	while (AI_ingame_num < MAX_INGAME_AI_NUM)
+	{
+		auto AI_tank = Tank::create(AI_TAG + AI_next_offset, 
+			AI_spawnpointX[AI_next_offset % MAX_INGAME_AI_NUM], AI_spawnpointY, 1, 1);
+		m_tankList.pushBack(AI_tank);
+		AI_next_offset++;
+		AI_ingame_num++;
+		this->addChild(AI_tank);
+	}
+}
+
+void GameClient::AI_update(float delta)
+{
+	AI_update_delta += delta;
+	if (AI_update_delta > 1.0f)
+	{
+		AI_update_delta = 0;
+		// 补充AI
+		AI_fill();
+		// 自动开火
+		for (int i = 0; i < m_tankList.size(); i++)
+			if(m_tankList.at(i)->getID() != PLAYER_TAG)
+				m_tankList.at(i)->Fire();
+	}
+}
+
 void GameClient::update(float delta)
 {
-	// 收到传来的开火消息的坦克执行Fire
-	if (m_shouldFireList.size() > 0)
-	{
-		auto tank = m_shouldFireList.at(0);
-		tank->Fire();
-		m_shouldFireList.clear();
-	}
-
+	AI_update(delta);
 	// 维护坦克列表
 	for (int i = 0;i < m_tankList.size(); i++)
 	{
 		auto nowTank = m_tankList.at(i);
 		if (nowTank->getLife() <= 0)
 		{
-			m_tankList.eraseObject(nowTank);
-		}
-		bool notDraw = true;
-		for (int j = 0;j < m_drawList.size(); j ++)
-		{
-			auto drawTank = m_drawList.at(j);
-			if (drawTank->getID() == nowTank->getID() )
-			{
-				notDraw = false;
-			}
-		}
-
-		// 绘制尚未绘制的坦克-针对后连进来的客户端
-		if (notDraw)  
-		{
-			this->addChild(nowTank);
-			m_drawList.pushBack(nowTank);
+			m_deleteTankList.pushBack(nowTank);
+			// m_tankList.eraseObject(nowTank);
 		}
 	}
 
-	// 坦克与 坦克，物品的碰撞检测
+	// 坦克移动
+	char mvkey = maxValKey();
+	if (mvkey == 'W') m_tank->MoveUP();
+	else if (mvkey == 'A') m_tank->MoveLeft();
+	else if (mvkey == 'S') m_tank->MoveDown();
+	else if (mvkey == 'D') m_tank->MoveRight();
+
+	// 坦克与 坦克/物品 的碰撞检测
 	for (int i = 0;i < m_tankList.size(); i++)
 	{
 		for (int j = 0; j < m_bgList.size(); j++)
@@ -97,38 +130,35 @@ void GameClient::update(float delta)
 				// 方法1：履带持续转动
 				nowTank->setHindered(TANK_UP);
 				nowTank->setPositionY(nowTank->getPositionY() - 1); // 避免检测成功后坦克持续受，无法行动造成卡住
-
 				// 方法2：履带停止转动
 				// nowTank->Stay(TANK_UP);
 			}
 			if (nowTank->getLife() && (nowTank->getRect().intersectsRect(nowBrick->getRect())) && (nowTank->getDirection() == TANK_DOWN))
 			{
 				// 方法1：履带持续转动
-				nowTank->setHindered(TANK_DOWN); 
+				nowTank->setHindered(TANK_DOWN);
 				nowTank->setPositionY(nowTank->getPositionY() + 1); // 避免检测成功后坦克持续受，无法行动造成卡住
-
 				// 方法2：履带停止转动
 				// nowTank->Stay(TANK_DOWN);
 			}
 			if (nowTank->getLife() && (nowTank->getRect().intersectsRect(nowBrick->getRect())) && (nowTank->getDirection() == TANK_LEFT))
 			{
 				// 方法1：履带持续转动
-				nowTank->setHindered(TANK_LEFT); 
+				nowTank->setHindered(TANK_LEFT);
 				nowTank->setPositionX(nowTank->getPositionX() + 1); // 避免检测成功后坦克持续受，无法行动造成卡住
-
 				// 方法2：履带停止转动
 				// nowTank->Stay(TANK_LEFT);
 			}
 			if (nowTank->getLife() && (nowTank->getRect().intersectsRect(nowBrick->getRect())) && (nowTank->getDirection() == TANK_RIGHT))
 			{
 				// 方法1：履带持续转动
-				nowTank->setHindered(TANK_RIGHT); 
+				nowTank->setHindered(TANK_RIGHT);
 				nowTank->setPositionX(nowTank->getPositionX() - 1); // 避免检测成功后坦克持续受，无法行动造成卡住
-
 				// 方法2：履带停止转动
 				// nowTank->Stay(TANK_RIGHT);
 			}
 		}
+
 		// 坦克与坦克
 		for (int j = 0; j < m_tankList.size(); j ++)
 		{
@@ -156,42 +186,45 @@ void GameClient::update(float delta)
 			}
 		}
 
-		// 坦克与子弹
+		// 子弹与 坦克/子弹/砖块 的碰撞
 		auto tank = m_tankList.at(i);
 		for (int j = 0; j < tank->getBulletList().size(); j ++)
 		{
 			auto bullet = tank->getBulletList().at(j);
-			for (int k = 0;k < m_tankList.size(); k ++)
-			{
-				auto tank_another = m_tankList.at(k);
-				if (tank->getID() != tank_another->getID())
-				{
-					if (bullet->getRect().intersectsRect(tank_another->getRect()))
-					{
-						// 子弹消除
-						m_deleteBulletList.pushBack(bullet);
-
-						// 坦克消除
-						m_deleteTankList.pushBack(tank_another);
-					}
-				}
-			}
-		}
-
-		// 子弹和墙
-		for (int j = 0; j < tank->getBulletList().size(); j ++)
-		{
-			auto bullet = tank->getBulletList().at(j);
-			for (int k = 0; k < m_bgList.size(); k ++)
+			// 子弹与砖块
+			for (int k = 0; k < m_bgList.size(); k++)
 			{
 				auto brick = m_bgList.at(k);
 				if (bullet->getRect().intersectsRect(brick->getRect()))
 				{
-					// 子弹消除
-					m_deleteBulletList.pushBack(bullet);
+					m_deleteBulletList.pushBack(bullet);	// 子弹消除
+					m_deleteBrickList.pushBack(brick);		// 砖块消除
+				}
+			}
 
-					// 砖块消除
-					m_deleteBrickList.pushBack(brick);
+			for (int k = 0;k < m_tankList.size(); k ++)
+			{
+				// 子弹与坦克
+				auto tank_another = m_tankList.at(k);
+				if (tank->getID() == tank_another->getID()) continue;
+				// AI和AI不相互影响
+				if (tank->getID() != PLAYER_TAG && tank_another->getID() != PLAYER_TAG) continue;
+
+				if (bullet->getRect().intersectsRect(tank_another->getRect()))
+				{
+					m_deleteBulletList.pushBack(bullet);		// 子弹消除
+					m_deleteTankList.pushBack(tank_another);	// 坦克消除
+				}
+
+				// 子弹与子弹
+				for (int t = 0; t < tank_another->getBulletList().size(); t++)
+				{
+					auto bullet_another = tank_another->getBulletList().at(t);
+					if (bullet->getRect().intersectsRect(bullet_another->getRect()))
+					{
+						m_deleteBulletList.pushBack(bullet);		// 子弹消除
+						m_deleteBulletList.pushBack(bullet_another);		// 子弹消除
+					}
 				}
 			}
 		}
@@ -218,6 +251,11 @@ void GameClient::update(float delta)
 		for (int j = 0; j < m_deleteTankList.size(); j ++)
 		{
 			auto tank = m_deleteTankList.at(j);
+			if (tank->getID() != 110)
+			{
+				AI_ingame_num--;		// 如果是AI，则减少游戏内AI数量
+				AI_remain_num--;		// 如果是AI，减少剩余AI数量	
+			}
 			m_deleteTankList.eraseObject(tank);
 			m_tankList.eraseObject(tank);
 			tank->Blast();
@@ -259,31 +297,42 @@ void GameClient::drawBigBG(Vec2 position)
 	}
 }
 
+char GameClient::maxValKey()
+{
+	char ch = ' ';
+	if (keys['W'] > keys[ch]) ch = 'W';
+	if (keys['A'] > keys[ch]) ch = 'A';
+	if (keys['S'] > keys[ch]) ch = 'S';
+	if (keys['D'] > keys[ch]) ch = 'D';
+	return ch;
+}
+
 void GameClient::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
 {
 	switch (keyCode)
 	{
 	case cocos2d::EventKeyboard::KeyCode::KEY_A:
 		{
-			m_tank->MoveLeft();
+			keys['A'] = keys[maxValKey()] + 1;
+			//m_tank->MoveLeft();
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_W:
-		// m_tank->MoveUP();
 		{
-			m_tank->MoveUP();
+			keys['W'] = keys[maxValKey()] + 1;
+			//m_tank->MoveUP();
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_S:
-		// m_tank->MoveDown();
 		{
-			m_tank->MoveDown();
+			keys['S'] = keys[maxValKey()] + 1;
+			//m_tank->MoveDown();
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_D:
-		// m_tank->MoveRight();
 		{
-			m_tank->MoveRight();
+			keys['D'] = keys[maxValKey()] + 1;
+			//m_tank->MoveRight();
 		}
 		break;
 	}
@@ -295,21 +344,25 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 	{
 	case cocos2d::EventKeyboard::KeyCode::KEY_A:
 		{
+			keys['A'] = 0;
 			m_tank->Stay(TANK_LEFT);
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_W:
 		{
+			keys['W'] = 0;
 			m_tank->Stay(TANK_UP);
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_S:
 		{
+			keys['S'] = 0;
 			m_tank->Stay(TANK_DOWN);
 		}
 		break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_D:
 		{
+			keys['D'] = 0;
 			m_tank->Stay(TANK_RIGHT);
 		}
 		break;
@@ -319,17 +372,4 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 		}
 		break;
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// 处理网络传输数据时作出的响应
-void GameClient::addTank(int id, float x, float y, int dir, int kind)
-{
-	m_maxTank[tankcount] = Tank::create(id, x, y, dir, kind);
-	m_tankList.pushBack(m_maxTank[tankcount++]);
-}
-
-void GameClient::addFire(Tank* tank)
-{
-	m_shouldFireList.pushBack(tank);
 }
