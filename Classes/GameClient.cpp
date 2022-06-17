@@ -37,6 +37,9 @@ bool GameClient::init()
 	key_listener->onKeyReleased = CC_CALLBACK_2(GameClient::onKeyReleased, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
 
+	//auto touch_listener = EventListenerTouchOneByOne::create();
+	//touch_listener->onTouchEnded = CC_CALLBACK_2(GameClient)
+
 	this->addChild(m_tank);
 	m_drawList.pushBack(m_tank); // 联网后再加入，因为ID由服务器分配
 
@@ -50,6 +53,14 @@ bool GameClient::init()
 
 
 	// UI 下的BUTTON
+	Menubtn = (Button*)(gameUI->getChildByName("pause_button"));
+	Replaybtn = (Button*)(gameUI->getChildByName("replay_button"));
+	Pausebtn = (Button*)(gameUI->getChildByName("pause_button"));
+
+	// add button event callback
+	Menubtn->addTouchEventListener(CC_CALLBACK_2(GameClient::pressMenuButton, this));
+	Replaybtn->addTouchEventListener(CC_CALLBACK_2(GameClient::pressReplayButton, this));
+	Pausebtn->addTouchEventListener(CC_CALLBACK_2(GameClient::pressPauseButton, this));
 
 
 	return true;
@@ -277,7 +288,7 @@ void GameClient::createBackGround()
 
 	this->addChild(map, 10);
 
-	auto forest_layer = map->getLayer("forest");
+	auto forest_layer = map->getLayer("lake");
 	auto brick_layer = map->getLayer("brick");
 
 	// 60 × 40 的矩阵
@@ -306,15 +317,15 @@ void GameClient::createBackGround()
 		}
 	}
 
-	drawBigBG(Vec2(16 * 16, 5 * 16));
-	drawBigBG(Vec2(20 * 16, 20 * 16));
+	//drawBigBG(Vec2(16 * 16, 5 * 16));
+	//drawBigBG(Vec2(20 * 16, 20 * 16));
 
 	//drawBigBG(Vec2(x * 16, y * 16));
 
-	drawBigBG_HighLevel(Vec2(45 * 16, 8 * 16), 1, 8);
-	drawBigBG_HighLevel(Vec2(55 * 16, 20 * 16), 1, 8);
-	drawBigBG_HighLevel(Vec2(34 * 16, 10 * 16), 0, 14);
-	drawBigBG_HighLevel(Vec2(23 * 16, 6 * 16), 1, 6);
+	//drawBigBG_HighLevel(Vec2(45 * 16, 8 * 16), 1, 8);
+	//drawBigBG_HighLevel(Vec2(55 * 16, 20 * 16), 1, 8);
+	//drawBigBG_HighLevel(Vec2(34 * 16, 10 * 16), 0, 14);
+	//drawBigBG_HighLevel(Vec2(23 * 16, 6 * 16), 1, 6);
 
 
 
@@ -454,9 +465,20 @@ void GameClient::addFire(Tank* tank)
 
 void GameClient::pressPauseButton(Ref* pSender, Widget::TouchEventType type)
 {
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	RenderTexture* renderTexture = RenderTexture::create(visibleSize.width, visibleSize.height);
 
+	//遍历当前类的所有子节点信息，画入renderTexture中。
+	//这里类似截图。
+	renderTexture->begin();
+	this->getParent()->visit();
+	renderTexture->end();
+
+	Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.5f, Gamepause::createScene()));
+	//if (type == ui::Widget::TouchEventType::ENDED)
+	//	this->unscheduleUpdate();
 }
-void GameClient::pressPlayButton(Ref* pSender, Widget::TouchEventType type)
+void GameClient::pressMenuButton(Ref* pSender, Widget::TouchEventType type)
 {
 
 }
@@ -464,6 +486,6 @@ void GameClient::pressReplayButton(Ref* pSender, Widget::TouchEventType type)
 {
 	if (type == ui::Widget::TouchEventType::ENDED)
 	{
-		Director::getInstance()->replaceScene(CCTransitionCrossFade::create(0.5f, this->createScene()));
+		Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.5f, this->createScene()));
 	}
 }

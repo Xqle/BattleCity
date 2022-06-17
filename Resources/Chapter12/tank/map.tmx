@@ -3,7 +3,7 @@
  <tileset firstgid="1" name="base" tilewidth="16" tileheight="16" tilecount="28" columns="14">
   <image source="tile.png" width="224" height="32"/>
  </tileset>
- <layer id="8" name="backup_background" width="60" height="40" visible="0">
+ <layer id="8" name="backup_background" width="60" height="40">
   <data>
    <tile/>
    <tile/>

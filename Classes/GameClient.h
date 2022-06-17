@@ -4,6 +4,7 @@
 #include "cocos2d.h"
 #include "Tank.h"
 #include "Brick.h"
+#include "GamePause.h"
 USING_NS_CC;
 using namespace cocos2d;
 
@@ -42,7 +43,9 @@ public:
 	void onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event);
 	void onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event); 
 
-	void pressPlayButton(Ref* pSender, Widget::TouchEventType type);
+	void onTouchEnded(EventKeyboard::KeyCode keyCode, Event* event);
+
+	void pressMenuButton(Ref* pSender, Widget::TouchEventType type);
 	void pressReplayButton(Ref* pSender, Widget::TouchEventType type);
 	void pressPauseButton(Ref* pSender, Widget::TouchEventType type);
 
@@ -50,6 +53,13 @@ public:
 	Tank* getTank() { return m_tank; };
 	Vector<Tank*> getTankList() { return m_tankList; };
 	tileBlock** block_status;	// 地图块的属性矩阵
+
+	// UI related
+	Button* Menubtn;
+	Button* Replaybtn;
+	Button* Pausebtn;
+	bool stopped;
+
 private:
 	Vector<Brick*>  m_bgList;     // 背景块列表
 	Vector<Tank*>   m_tankList;   // 坦克列表

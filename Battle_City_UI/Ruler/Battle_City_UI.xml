@@ -4,4 +4,8 @@
     <Project>gameUI</Project>
     <GuidesList />
   </GuidesProject>
+  <GuidesProject>
+    <Project>pauseUI</Project>
+    <GuidesList />
+  </GuidesProject>
 </ArrayOfGuidesProject>

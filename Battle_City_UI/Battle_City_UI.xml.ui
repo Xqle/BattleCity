@@ -9,10 +9,11 @@
   <JsonFolder>D:\game_develop\FINAL\finalgame\Battle_City_UI\Json</JsonFolder>
   <JsonList>
     <string>gameUI.json</string>
+    <string>pauseUI.json</string>
   </JsonList>
   <imageFileList />
   <JsonSuffix>.json</JsonSuffix>
-  <CurrentUIJson>gameUI.json</CurrentUIJson>
+  <CurrentUIJson>pauseUI.json</CurrentUIJson>
   <CanvasSize>
     <Width>1024</Width>
     <Height>768</Height>
