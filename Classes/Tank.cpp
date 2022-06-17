@@ -56,22 +56,11 @@ bool Tank::init(int ID, float x, float y, int dir, int kind)
 
 	// tank initY state
 	m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14;
-	if (dir > 0 && dir < 6 && dir == TANK_UP)
-	{
-		m_textureY = 1*14;
-	}
-	if (dir > 0 && dir < 6 && dir == TANK_LEFT)
-	{
-		m_textureY = 7*14;
-	}
-	if (dir > 0 && dir < 6 && dir == TANK_RIGHT)
-	{
-		m_textureY = 3*14;
-	}
-	if (dir > 0 && dir < 6 && dir == TANK_DOWN)
-	{
-		m_textureY = 5*14;
-	}
+	if (dir == TANK_UP)	 m_textureY = 1*14;
+	else if (dir == TANK_LEFT)	 m_textureY = 7*14;
+	else if (dir == TANK_RIGHT) m_textureY = 3*14;
+	else if (dir == TANK_DOWN)  m_textureY = 5*14;
+	
 
 	// 坦克初始状态
 	m_sprite = Sprite::createWithTexture(m_texture, Rect(m_textureX-14.0, m_textureY-14.0, 28, 28));
@@ -147,6 +136,26 @@ void Tank::Fire()
 	this->getParent()->addChild(bullet, 8);   // 添加到游戏场景
 }
 
+// 仿照Draw编写MyDraw()，用于A*算法转身
+void Tank::MyDraw()
+{
+	if (this->getLife() <= 0) return;
+	
+	int dir = this->getDirection();
+	// 设置纹理坐标
+	m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14;		// get tank textureX
+	if (dir == TANK_UP)	 m_textureY = 1 * 14;
+	else if (dir == TANK_LEFT)	 m_textureY = 7 * 14;
+	else if (dir == TANK_RIGHT) m_textureY = 3 * 14;
+	else if (dir == TANK_DOWN)  m_textureY = 5 * 14;
+
+	this->removeChild(m_sprite, true); // 重要：把前一个精灵移除,避免内存无法释放
+	m_sprite = Sprite::createWithTexture(m_texture, Rect(m_textureX - 14.0, m_textureY - 14.0, 28, 28));
+	m_sprite->setScale(TANKSIZE / 28);
+	this->addChild(m_sprite);          // 更新精灵图片
+}
+
+
 void Tank::Draw()
 {
 	if(this->getLife()){
@@ -198,6 +207,7 @@ void Tank::update(float t)
 {
 	m_isMoving = m_moveUp | m_moveDown | m_moveLeft | m_moveRight;				 // 更新移动状态
 	m_rect = Rect(this->getPositionX() - 16, this->getPositionY() - 16, 32, 32); // 更新rect
+	// m_rect = Rect(this->getPositionX() - 14, this->getPositionY() - 14, 28, 28); // 更新rect
 	for (int i = 0;i < m_bulletList.size();i++)
 	{
 		auto nowBullet = m_bulletList.at(i);

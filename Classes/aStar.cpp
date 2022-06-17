@@ -32,11 +32,8 @@ void insertNodeToClosedList(closedList* close, openList* &open)
 
 void calculateValues(mapNode** map, int x, int y, int i, mapNode* node, mapNode* destination)
 {
-	//若沿对角线移动，g值增加1.4个单位边长，否则g值增加1个单位边长
-	if (i == 0 || i == 2 || i == 5 || i == 7)
-		map[x][y].gValue = node->gValue + 1.4*UNIT;
-	else
-		map[x][y].gValue = node->gValue + UNIT;
+	//g值增加1个单位边长
+	map[x][y].gValue = node->gValue + UNIT;
 	//h值为该相邻节点沿水平、竖直方向移动到终点的距离
 	map[x][y].hValue = (abs(destination->xCoordinate - x) + abs(destination->yCoordinate - y))*UNIT;
 	map[x][y].fValue = map[x][y].gValue + map[x][y].hValue;
@@ -75,22 +72,8 @@ void insertToOpenList(openList* open, mapNode* node)
 
 bool ifChangeParent(mapNode** map, int x, int y, int i, mapNode * node)
 {
-	//若沿对角线移动
-	if (i == 0 || i == 2 || i == 5 || i == 7)
-	{
-		//若相邻节点g值大于当前节点g值超过1.4个单位
-		if (map[x][y].gValue> node->gValue + 1.4*UNIT)
-		{
-			//设置当前节点为父节点
-			map[x][y].parent = node;
-			//修改节点的g，f值，h值不变
-			map[x][y].gValue = node->gValue + 1.4*UNIT;
-			map[x][y].fValue = map[x][y].gValue + map[x][y].hValue;
-		}
-		return true;
-	}
-	//若沿水平、垂直方向移动，同理
-	else
+	//沿水平、垂直方向移动
+	if(i < 4)
 	{
 		if (map[x][y].gValue > node->gValue + UNIT)
 		{
@@ -104,12 +87,12 @@ bool ifChangeParent(mapNode** map, int x, int y, int i, mapNode * node)
 }
 
 
-//定义检验当前节点相邻8个方向的节点的函数
+//定义检验当前节点相邻4个方向的节点的函数
 bool checkNeighboringNodes(mapNode** map, openList* open, mapNode* node, mapNode* destination)
 {
 	//定义当前节点相邻8个方向的坐标变化
-	const int neighborDirection[8][2] = { { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }, { 0, 1 }, { 1, -1 }, { 1, 0 }, { 1, 1 } };
-	for (int i = 0; i<8; i++)
+	const int neighborDirection[4][2] = {{ -1, 0 }, { 0, -1 }, { 0, 1 }, { 1, 0 }};
+	for (int i = 0; i<4; i++)
 	{
 		//得到相邻节点的x，y坐标
 		int neighborX = node->xCoordinate + neighborDirection[i][0];

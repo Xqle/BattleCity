@@ -9,10 +9,16 @@
 USING_NS_CC;
 using namespace cocos2d;
 
+#define VISIBLE_WIDTH	(int)Director::getInstance()->getVisibleSize().width
+#define VISIBLE_HEIGHT	(int)Director::getInstance()->getVisibleSize().height
+#define x2i(x) x / UNIT
+#define y2j(y) (VISIBLE_HEIGHT - y) / UNIT
+#define i2x(i) (i + 0.5) * UNIT
+#define j2y(j) VISIBLE_HEIGHT - (j + 0.5) * UNIT)
 #define PLAYER_TAG 110
-#define MAX_AI_NUM 10
-#define MAX_INGAME_AI_NUM 3
 #define AI_TAG 111
+#define MAX_AI_NUM 10
+#define MAX_INGAME_AI_NUM 4
 static int tankcount = 0;     // 记录当前坦克数
 static int NET_TAG = 11111;   
 
@@ -42,8 +48,15 @@ public:
 	void AI_init();
 	void AI_update(float delta);
 	void AI_fill();	// 补足场上AI
-	//A*算法主函数
-	int aStar(mapNode** map, mapNode* origin, mapNode* destination);
+	// A*算法
+	int aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag);
+	void moveOnPath(mapNode* tempNode, int tag);
+	void mapcopy();
+	// tank移动
+	void TurnLeft(Tank* tank)	{ tank->setDirection(TANK_LEFT);	tank->MyDraw();	}
+	void TurnRight(Tank* tank)	{ tank->setDirection(TANK_RIGHT);	tank->MyDraw();	}
+	void TurnDown(Tank* tank)   { tank->setDirection(TANK_DOWN);	tank->MyDraw();	}
+	void TurnUp(Tank* tank)		{ tank->setDirection(TANK_UP);		tank->MyDraw();	}
 
 private:
 	Vector<Brick*>  m_bgList;     // 背景块列表
@@ -56,7 +69,7 @@ private:
 	Vector<Tank*>   m_deleteTankList;     // 删除坦克列表
 
 	// AI
-	double AI_spawnpointX[MAX_INGAME_AI_NUM] = { WINDOWWIDTH / 4, WINDOWWIDTH / 2, WINDOWWIDTH * 3 / 4 };
+	double AI_spawnpointX[MAX_INGAME_AI_NUM] = { WINDOWWIDTH / 5 + 3, WINDOWWIDTH * 2 / 5, WINDOWWIDTH * 3 / 5, WINDOWWIDTH * 4 / 5 };
 	double AI_spawnpointY = 600;	// AI 出生点
 	double AI_update_delta;		// AI_action的计时器
 	int AI_remain_num;			// 剩余多少个AI			(<= MAX_AI_NUM)
@@ -66,9 +79,11 @@ private:
 	TMXLayer* m_mapLayer;		//瓦片地图的图层对象
 	Size m_visibleSize;			//屏幕的可见尺寸
 	mapNode** m_map;			//地图数组指针
-	mapNode* m_origin;			//寻路起点指针
+	mapNode** m_map_t;			//临时用的地图数组指针
+	// mapNode* m_origin;			//寻路起点指针
 	mapNode* m_destination;		//寻路终点指针
-	
+	DrawNode* m_draw[MAX_INGAME_AI_NUM];
+
 	// 键盘按键
 	int keys[128];
 	

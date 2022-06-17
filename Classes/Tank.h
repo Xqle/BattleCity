@@ -36,6 +36,8 @@ public:
 	bool isMoving() { return m_isMoving; };
 	Rect getRect() { return m_rect; };
 	Vector<Bullet*> getBulletList() { return m_bulletList; };
+	
+	void MyDraw();	// 转向时绘画函数
 private:
 	virtual bool init(int ID, float x, float y, int dir, int kind);
 	void Draw();
