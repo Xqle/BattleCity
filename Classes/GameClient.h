@@ -42,6 +42,8 @@ public:
 	void AI_init();
 	void AI_update(float delta);
 	void AI_fill();	// 补足场上AI
+	//A*算法主函数
+	int aStar(mapNode** map, mapNode* origin, mapNode* destination);
 
 private:
 	Vector<Brick*>  m_bgList;     // 背景块列表
@@ -60,9 +62,17 @@ private:
 	int AI_remain_num;			// 剩余多少个AI			(<= MAX_AI_NUM)
 	int AI_ingame_num;			// 当前在屏幕里的AI		(<= MAX_INGAME_AI_NUM)
 	int AI_next_offset;			// 下一个创建的AI是第几个AI
-
+	// A*算法
+	TMXLayer* m_mapLayer;		//瓦片地图的图层对象
+	Size m_visibleSize;			//屏幕的可见尺寸
+	mapNode** m_map;			//地图数组指针
+	mapNode* m_origin;			//寻路起点指针
+	mapNode* m_destination;		//寻路终点指针
+	
 	// 键盘按键
 	int keys[128];
+	
+
 };
 
 #endif

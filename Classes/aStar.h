@@ -6,9 +6,9 @@
 
 using namespace std;
 
-#define MAP_WIDTH 32  
-#define MAP_HEIGHT 20
-#define UNIT 32 
+#define MAP_WIDTH 60  
+#define MAP_HEIGHT 40
+#define UNIT 16 
 
 //定义节点的各种状态：
 #define ACCESS 1		   //方格可到达、不可到达

@@ -20,6 +20,7 @@ bool GameClient::init()
 	}
 
 	// 背景
+	m_visibleSize = Director::getInstance()->getVisibleSize();
 	createBackGround();
 
 	// 玩家
@@ -59,7 +60,7 @@ void GameClient::AI_init()
 	AI_ingame_num = 0;
 	for (int i = 0; i < MAX_INGAME_AI_NUM; i++)
 	{
-		auto AI_tank = Tank::create(AI_TAG + AI_next_offset, AI_spawnpointX[i], AI_spawnpointY, TANK_RIGHT - i, 1);
+		auto AI_tank = Tank::create(AI_TAG + AI_next_offset, AI_spawnpointX[i], AI_spawnpointY, TANK_DOWN, 1);
 		m_tankList.pushBack(AI_tank);
 		AI_next_offset++;
 		AI_ingame_num++;
@@ -121,6 +122,7 @@ void GameClient::update(float delta)
 	// 坦克与 坦克/物品 的碰撞检测
 	for (int i = 0;i < m_tankList.size(); i++)
 	{
+		// 坦克与砖块
 		for (int j = 0; j < m_bgList.size(); j++)
 		{
 			auto nowTank = m_tankList.at(i);
@@ -195,13 +197,16 @@ void GameClient::update(float delta)
 			for (int k = 0; k < m_bgList.size(); k++)
 			{
 				auto brick = m_bgList.at(k);
+				if (brick->getGID() == 7) continue;		// 水可以穿过
 				if (bullet->getRect().intersectsRect(brick->getRect()))
 				{
 					m_deleteBulletList.pushBack(bullet);	// 子弹消除
+					if (brick->getGID() == 3) continue;		// 白块不可消除
 					m_deleteBrickList.pushBack(brick);		// 砖块消除
 				}
 			}
-
+			
+			// 子弹与坦克 / 子弹
 			for (int k = 0;k < m_tankList.size(); k ++)
 			{
 				// 子弹与坦克
@@ -266,36 +271,68 @@ void GameClient::update(float delta)
 	}
 }
 
-// 绘制4个回字砖块
+// 初始化地图
 void GameClient::createBackGround()
 {
 	auto map = TMXTiledMap::create("Chapter12/tank/map.tmx");
+	m_mapLayer = map->getLayer("brick");
+	m_mapLayer->setVisible(false);
 	this->addChild(map, 10);
 
-	drawBigBG(Vec2(16 * 16, 25 * 16));
-	drawBigBG(Vec2(44 * 16, 25 * 16));
-	drawBigBG(Vec2(16 * 16, 14 * 16));
-	drawBigBG(Vec2(44 * 16, 14 * 16));
+	//根据地图宽、高分配数组空间
+	m_map = new mapNode * [MAP_WIDTH];
+	for (int n = 0; n < MAP_WIDTH; n++)
+		m_map[n] = new mapNode[MAP_HEIGHT];
+	//依次扫描地图数组每一个单元
+	for (int i = 0; i < MAP_WIDTH; i++)
+	{
+		for (int j = 0; j < MAP_HEIGHT; j++)
+		{
+			//若当前位置为墙体瓦片设置为不可通过
+			int gid = m_mapLayer->getTileGIDAt(Vec2(i, j));
+			if (gid == 1 || gid == 3 || gid == 7)
+			{
+				mapNode temp = { NOT_ACCESS, i, j, 0, 0, 0, nullptr };
+				m_map[i][j] = temp;
+				// 添加砖块
+				auto brick = Brick::create(Vec2((i - 0.5) * UNIT, m_visibleSize.height - (j + 0.5) * UNIT), gid);
+				m_bgList.pushBack(brick);
+				this->addChild(brick, 2);
+			}
+
+			//否则设置为可以通过
+			else
+			{
+				mapNode temp = { ACCESS, i, j, 0, 0, 0, nullptr };
+				m_map[i][j] = temp;
+			}
+		}
+	}
+
+	// drawBigBG(Vec2(16 * 16, 25 * 16));
+	// drawBigBG(Vec2(44 * 16, 25 * 16));
+	// drawBigBG(Vec2(16 * 16, 14 * 16));
+	// drawBigBG(Vec2(44 * 16, 14 * 16));
 }
 
 // 绘制单个回字砖块
-void GameClient::drawBigBG(Vec2 position)
-{
-	for (int i = -2;i < 4;i ++)
-	{
-		for (int j = -2;j < 4;j ++)
-		{
-			if ((i == 1)&&(j == 0) || (i == 0)&&(j == 0) || (i == 1)&&(j == 1) || (i == 0)&&(j == 1))
-			{
-				// 中间留空形成回字
-				continue;
-			}
-			auto brick = Brick::create(Vec2(position.x + (0.5 - i) * 16, position.y + (0.5 - j) * 16));
-			m_bgList.pushBack(brick);
-			this->addChild(brick, 2);
-		}
-	}
-}
+//void GameClient::drawBigBG(Vec2 position)
+//{
+//	for (int i = -2; i < 4;i ++)
+//	{
+//		for (int j = -2;j < 4;j ++)
+//		{
+//			if ((i == 1)&&(j == 0) || (i == 0)&&(j == 0) || (i == 1)&&(j == 1) || (i == 0)&&(j == 1))
+//			{
+//				// 中间留空形成回字
+//				continue;
+//			}
+//			auto brick = Brick::create(Vec2(position.x + (0.5 - i) * 16, position.y + (0.5 - j) * 16));
+//			m_bgList.pushBack(brick);
+//			this->addChild(brick, 2);
+//		}
+//	}
+//}
 
 char GameClient::maxValKey()
 {
