@@ -10,10 +10,11 @@
   <JsonList>
     <string>gameUI.json</string>
     <string>pauseUI.json</string>
+    <string>scoreUI.json</string>
   </JsonList>
   <imageFileList />
   <JsonSuffix>.json</JsonSuffix>
-  <CurrentUIJson>pauseUI.json</CurrentUIJson>
+  <CurrentUIJson>scoreUI.json</CurrentUIJson>
   <CanvasSize>
     <Width>1024</Width>
     <Height>768</Height>

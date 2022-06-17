@@ -8,4 +8,8 @@
     <Project>pauseUI</Project>
     <GuidesList />
   </GuidesProject>
+  <GuidesProject>
+    <Project>scoreUI</Project>
+    <GuidesList />
+  </GuidesProject>
 </ArrayOfGuidesProject>

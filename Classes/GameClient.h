@@ -54,10 +54,23 @@ public:
 	Vector<Tank*> getTankList() { return m_tankList; };
 	tileBlock** block_status;	// 地图块的属性矩阵
 
+	// 计分板操作函数
+
+	// 让目标target 加score 分
+	void add_score(int target, int score); 
+
+	// 获取目标target当前分数
+	int get_score(int target, int score);
+
+
 	// UI related
 	Button* Menubtn;
 	Button* Replaybtn;
 	Button* Pausebtn;
+
+	TextBMFont* P1score;
+	TextBMFont* P2score;
+
 	bool stopped;
 
 private:
@@ -72,6 +85,8 @@ private:
 	Vector<Bullet*> m_deleteBulletList;   // 删除子弹列表
 	Vector<Brick*>  m_deleteBrickList;    // 删除砖块列表
 	Vector<Tank*>   m_deleteTankList;     // 删除坦克列表
+
+	int score_list[10]; // 计分板
 };
 
 #endif

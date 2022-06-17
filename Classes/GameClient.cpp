@@ -50,6 +50,8 @@ bool GameClient::init()
 	auto gameUI = GUIReader::getInstance()->widgetFromJsonFile("gameUI/gameUI.json");
 	addChild(gameUI, 100);
 
+	auto scoreUI = GUIReader::getInstance()->widgetFromJsonFile("scoreUI/scoreUI.json");
+	addChild(scoreUI, 100);
 
 
 	// UI 下的BUTTON
@@ -62,6 +64,18 @@ bool GameClient::init()
 	Replaybtn->addTouchEventListener(CC_CALLBACK_2(GameClient::pressReplayButton, this));
 	Pausebtn->addTouchEventListener(CC_CALLBACK_2(GameClient::pressPauseButton, this));
 
+	// 重置计分板
+	for (int i = 0; i < 10; i++)
+	{
+		score_list[i] = 0;
+	}
+
+	// scoreUI 下的text
+	P1score = (TextBMFont*)(scoreUI->getChildByName("Player1_score_text"));
+	P2score = (TextBMFont*)(scoreUI->getChildByName("Player2_score_text"));
+
+	P1score->setText(std::to_string(score_list[0]));
+	P2score->setText(std::to_string(score_list[1]));
 
 	return true;
 }
@@ -114,7 +128,7 @@ void GameClient::update(float delta)
 	// TODO 碰撞检测
 	// 坦克与 坦克，物品的碰撞检测
 	for (int i = 0; i < m_tankList.size(); i++)
-	{			
+	{
 		auto nowTank = m_tankList.at(i);
 		t_debug = nowTank;
 		for (int j = 0; j < m_bgList.size(); j++)
@@ -226,7 +240,7 @@ void GameClient::update(float delta)
 					}
 					else
 					{
-						if(!brick->is_highLevel)
+						if (!brick->is_highLevel)
 							m_deleteBrickList.pushBack(brick);
 
 					}
@@ -275,7 +289,7 @@ void GameClient::update(float delta)
 	{
 		tank_pos = Label::createWithTTF(print_string, "fonts/arial.ttf", 20);
 		tank_pos->setPosition(Vec2(150, 400));
-	this->addChild(tank_pos, 1);
+		this->addChild(tank_pos, 1);
 	}
 	tank_pos->setString(print_string);
 
@@ -346,7 +360,7 @@ void GameClient::drawBigBG(Vec2 position)
 				continue;
 			}
 			auto brick = Brick::create(Vec2(position.x + (0.5 - i) * 16, position.y + (0.5 - j) * 16), false);
-			
+
 			m_bgList.pushBack(brick);
 			this->addChild(brick, 2);
 		}
@@ -488,4 +502,19 @@ void GameClient::pressReplayButton(Ref* pSender, Widget::TouchEventType type)
 	{
 		Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.5f, this->createScene()));
 	}
+}
+
+// 让目标target 加score 分
+void GameClient::add_score(int target, int score)
+{
+	if (target >= 0 && target <= 9)
+	{
+		score_list[target] += score;
+	}
+}
+
+int GameClient::get_score(int target, int score)
+{
+	if (target >= 0 && target <= 9)
+		return score_list[target];
 }

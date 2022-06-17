@@ -27,7 +27,7 @@
               "__type": "ComGUIButtonSurrogate:#EditorCommon.JsonModel.Component.GUI",
               "classname": "Button",
               "name": "playButton",
-              "ZOrder": 1,
+              "ZOrder": 0,
               "actiontag": 30,
               "anchorPointX": 0.5,
               "anchorPointY": 0.5,
