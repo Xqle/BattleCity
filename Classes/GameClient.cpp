@@ -40,6 +40,8 @@ bool GameClient::init()
 	//auto touch_listener = EventListenerTouchOneByOne::create();
 	//touch_listener->onTouchEnded = CC_CALLBACK_2(GameClient)
 
+	CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("minecraft.mp3", true);
+
 	this->addChild(m_tank);
 	m_drawList.pushBack(m_tank); // 联网后再加入，因为ID由服务器分配
 
@@ -312,24 +314,24 @@ void GameClient::createBackGround()
 		block_status[i] = new tileBlock[40];
 	}
 
-	for (int i = 0; i < 60; i++)
-	{
-		for (int j = 0; j < 40; j++)
-		{
-			if (forest_layer->getTileGIDAt(Vec2(i, j)) == 5) // tiled 中的GID +1 即forest图块
-			{
+	//for (int i = 0; i < 60; i++)
+	//{
+	//	for (int j = 0; j < 40; j++)
+	//	{
+	//		if (forest_layer->getTileGIDAt(Vec2(i, j)) == 5) // tiled 中的GID +1 即forest图块
+	//		{
 
-			}
-			if (brick_layer->getTileGIDAt(Vec2(i, j)) == 1) // 普通砖块
-			{
+	//		}
+	//		if (brick_layer->getTileGIDAt(Vec2(i, j)) == 1) // 普通砖块
+	//		{
 
-			}
-			if (brick_layer->getTileGIDAt(Vec2(i, j)) == 3) // 高级方块
-			{
+	//		}
+	//		if (brick_layer->getTileGIDAt(Vec2(i, j)) == 3) // 高级方块
+	//		{
 
-			}
-		}
-	}
+	//		}
+	//	}
+	//}
 
 	//drawBigBG(Vec2(16 * 16, 5 * 16));
 	//drawBigBG(Vec2(20 * 16, 20 * 16));
@@ -455,11 +457,16 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 	{
 		m_tank->Fire();
 	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_F:
 	{
 		m_tank->Flash();
 	}
-
+	break;
+	case cocos2d::EventKeyboard::KeyCode::KEY_L:
+	{
+		m_tank->Fire_high();
+	}
 	break;
 	}
 }
@@ -500,6 +507,11 @@ void GameClient::pressReplayButton(Ref* pSender, Widget::TouchEventType type)
 {
 	if (type == ui::Widget::TouchEventType::ENDED)
 	{
+		//reset score board
+		for (int i = 0; i < 10; i++)
+		{
+			score_list[i] = 0;
+		}
 		Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.5f, this->createScene()));
 	}
 }

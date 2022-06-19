@@ -30,6 +30,7 @@ public:
 	void MoveLeft();
 	void MoveRight();
 	void Fire();
+	void Fire_high();
 	void Flash(); // 坦克闪现，有一定概率不能穿墙
 	void Stay(int dir);
 	void Blast();     // 爆炸时已自动设置life为0

@@ -32,6 +32,8 @@ bool Gamepause::init()
 		return false;
 	}
 
+
+
 	auto pauseUI = GUIReader::getInstance()->widgetFromJsonFile("pauseUI/pauseUI.json");
 	addChild(pauseUI, 100);
 
