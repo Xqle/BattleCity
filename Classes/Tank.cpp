@@ -31,9 +31,9 @@ bool Tank::init(int ID, float x, float y, int dir, int kind)
 	m_moveDown = FALSE;
 	m_moveRight = FALSE;
 	m_moveLeft = FALSE;
-
+	hidden = false;
 	m_isMoving = false;
-
+	level = 1;
 	m_frametime = 2.0;
 	m_temptime = 0;
 
@@ -138,6 +138,7 @@ void Tank::Fire()
 	this->getParent()->addChild(bullet, 8);   // 添加到游戏场景
 }
 
+// <<<<<<< HEAD
 // 仿照Draw编写MyDraw()，用于A*算法转身
 void Tank::MyDraw()
 {
@@ -157,6 +158,98 @@ void Tank::MyDraw()
 	this->addChild(m_sprite);          // 更新精灵图片
 }
 
+// =======
+void Tank::Fire_high()
+{
+	Bullet* bullet1;
+	Bullet* bullet2;
+	Bullet* bullet3;
+
+
+	Vec2 position;
+	switch (this->getDirection())
+	{
+	case TANK_UP:
+		position = Vec2(this->getPositionX(), this->getPositionY() + 14);
+		bullet1 = Bullet::create(position, 3, TANK_UP);
+		bullet2 = Bullet::create(position, 3, TANK_LEFT);
+		bullet3 = Bullet::create(position, 3, TANK_RIGHT);
+		m_bulletList.pushBack(bullet1);
+		m_bulletList.pushBack(bullet2);      
+		m_bulletList.pushBack(bullet3);     
+		this->getParent()->addChild(bullet1, 8); 
+		this->getParent()->addChild(bullet2, 8);
+		this->getParent()->addChild(bullet3, 8); 
+		break;
+	case TANK_DOWN:
+		position = Vec2(this->getPositionX(), this->getPositionY() - 14);
+		bullet1 = Bullet::create(position, 3, TANK_DOWN);
+		bullet2 = Bullet::create(position, 3, TANK_LEFT);
+		bullet3 = Bullet::create(position, 3, TANK_RIGHT);
+		m_bulletList.pushBack(bullet1);
+		m_bulletList.pushBack(bullet2);
+		m_bulletList.pushBack(bullet3);
+		this->getParent()->addChild(bullet1, 8);
+		this->getParent()->addChild(bullet2, 8);
+		this->getParent()->addChild(bullet3, 8);
+		break;
+	case TANK_LEFT:
+		position = Vec2(this->getPositionX() - 14, this->getPositionY());
+		bullet1 = Bullet::create(position, 3, TANK_UP);
+		bullet2 = Bullet::create(position, 3, TANK_LEFT);
+		bullet3 = Bullet::create(position, 3, TANK_DOWN);
+		m_bulletList.pushBack(bullet1);
+		m_bulletList.pushBack(bullet2);
+		m_bulletList.pushBack(bullet3);
+		this->getParent()->addChild(bullet1, 8);
+		this->getParent()->addChild(bullet2, 8);
+		this->getParent()->addChild(bullet3, 8);
+		break;
+	case TANK_RIGHT:
+		position = Vec2(this->getPositionX() + 14, this->getPositionY());
+		bullet1 = Bullet::create(position, 3, TANK_UP);
+		bullet2 = Bullet::create(position, 3, TANK_DOWN);
+		bullet3 = Bullet::create(position, 3, TANK_RIGHT);
+		m_bulletList.pushBack(bullet1);
+		m_bulletList.pushBack(bullet2);
+		m_bulletList.pushBack(bullet3);
+		this->getParent()->addChild(bullet1, 8);
+		this->getParent()->addChild(bullet2, 8);
+		this->getParent()->addChild(bullet3, 8);
+		break;
+	}
+	//auto bullet = Bullet::create(position, 3, this->getDirection());
+
+	//m_bulletList.pushBack(bullet);            // 添加到子弹列表
+	//this->getParent()->addChild(bullet, 8);   // 添加到游戏场景
+}
+
+// 坦克闪现，有一定概率不能穿墙
+void Tank::Flash()
+{
+	int dis = 100;
+	Vec2 position;
+	switch (this->getDirection())
+	{
+	case TANK_UP:
+		position = Vec2(this->getPositionX(), this->getPositionY() + dis);
+		break;
+	case TANK_DOWN:
+		position = Vec2(this->getPositionX(), this->getPositionY() - dis);
+		break;
+	case TANK_LEFT:
+		position = Vec2(this->getPositionX() - dis, this->getPositionY());
+		break;
+	case TANK_RIGHT:
+		position = Vec2(this->getPositionX() + dis, this->getPositionY());
+		break;
+	}
+
+	this->runAction(MoveTo::create(0.1f, position));
+	return;
+
+}
+// >>>>>>> gui_dev
 
 void Tank::Draw()
 {

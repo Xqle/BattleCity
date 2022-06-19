@@ -5,7 +5,8 @@
 #include "Tank.h"
 #include "Brick.h"
 #include "aStar.h"
-
+#include "GamePause.h"
+#include "SimpleAudioEngine.h"
 USING_NS_CC;
 using namespace cocos2d;
 
@@ -40,15 +41,41 @@ public:
 	void createBackGround();
 	void update(float delta);
 	void drawBigBG(Vec2 position);
+	void drawBigBG_HighLevel(Vec2 position, int dir, int length);
 
 	// 实现键盘回调
 	char maxValKey();
 	void onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event);
 	void onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event); 
 
+	void onTouchEnded(EventKeyboard::KeyCode keyCode, Event* event);
+
+	void pressMenuButton(Ref* pSender, Widget::TouchEventType type);
+	void pressReplayButton(Ref* pSender, Widget::TouchEventType type);
+	void pressPauseButton(Ref* pSender, Widget::TouchEventType type);
+
 	// get
 	Tank* getTank() { return m_tank; };
 	Vector<Tank*> getTankList() { return m_tankList; };
+
+	// 计分板操作函数
+
+	// 让目标target 加score 分
+	void add_score(int score) { score_list[0] += score;  };
+
+	// 获取目标target当前分数
+	int get_score(int target, int score);
+
+
+	// UI related
+	Button* Menubtn;
+	Button* Replaybtn;
+	Button* Pausebtn;
+
+	TextBMFont* P1score;
+	TextBMFont* P2score;
+
+	bool stopped;
 
 	// AI
 	void AI_init();
@@ -76,7 +103,7 @@ private:
 	// 守护目标
 	Sprite* m_bird;
 	Rect	m_bird_rect;
-	double	m_bird_spawnpointX = WINDOWWIDTH / 2;
+	double	m_bird_spawnpointX = WINDOWWIDTH / 5;
 	double	m_bird_spawnpointY = WINDOWHEIGHT / 5;
 	// 玩家
 	Tank* m_tank;       // 主坦克
@@ -106,6 +133,7 @@ private:
 	// 键盘按键
 	int keys[128];
 	
+	int score_list[10]; // 计分板
 
 };
 

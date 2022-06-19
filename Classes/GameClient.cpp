@@ -1,7 +1,11 @@
 #include "GameClient.h"
 #include <algorithm>
 #include <cstdlib>
+#include "ui/CocosGUI.h"
+using namespace cocos2d::ui;
+using namespace cocostudio;
 
+Label* tank_pos = NULL;
 GameClient::GameClient()
 {
 
@@ -48,6 +52,7 @@ bool GameClient::init()
 	// AI
 	AI_init();
 
+
 	// 碰撞检测
 	this->scheduleUpdate();
 
@@ -57,6 +62,42 @@ bool GameClient::init()
 	key_listener->onKeyPressed = CC_CALLBACK_2(GameClient::onKeyPressed, this);
 	key_listener->onKeyReleased = CC_CALLBACK_2(GameClient::onKeyReleased, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
+
+	//auto touch_listener = EventListenerTouchOneByOne::create();
+	//touch_listener->onTouchEnded = CC_CALLBACK_2(GameClient)
+
+	CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("minecraft.mp3", true);
+
+	// UI
+	auto gameUI = GUIReader::getInstance()->widgetFromJsonFile("gameUI/gameUI.json");
+	addChild(gameUI, 100);
+
+	auto scoreUI = GUIReader::getInstance()->widgetFromJsonFile("scoreUI/scoreUI.json");
+	addChild(scoreUI, 100);
+
+
+	// UI 下的BUTTON
+	Menubtn = (Button*)(gameUI->getChildByName("pause_button"));
+	Replaybtn = (Button*)(gameUI->getChildByName("replay_button"));
+	Pausebtn = (Button*)(gameUI->getChildByName("pause_button"));
+
+	// add button event callback
+	Menubtn->addTouchEventListener(CC_CALLBACK_2(GameClient::pressMenuButton, this));
+	Replaybtn->addTouchEventListener(CC_CALLBACK_2(GameClient::pressReplayButton, this));
+	Pausebtn->addTouchEventListener(CC_CALLBACK_2(GameClient::pressPauseButton, this));
+
+	// 重置计分板
+	for (int i = 0; i < 10; i++)
+	{
+		score_list[i] = 0;
+	}
+
+	// scoreUI 下的text
+	P1score = (TextBMFont*)(scoreUI->getChildByName("Player1_score_text"));
+	P2score = (TextBMFont*)(scoreUI->getChildByName("Player2_score_text"));
+
+	P1score->setText(std::to_string(score_list[0]));
+	P2score->setText(std::to_string(score_list[1]));
 
 	return true;
 }
@@ -242,7 +283,7 @@ void GameClient::update(float delta)
 	}
 
 	// 维护坦克列表
-	for (int i = 0;i < m_tankList.size(); i++)
+	for (int i = 0; i < m_tankList.size(); i++)
 	{
 		auto nowTank = m_tankList.at(i);
 		if (nowTank->getLife() <= 0)
@@ -336,7 +377,7 @@ void GameClient::update(float delta)
 		}
 
 		// 坦克与坦克
-		for (int j = 0; j < m_tankList.size(); j ++)
+		for (int j = 0; j < m_tankList.size(); j++)
 		{
 			auto anotherTank = m_tankList.at(j);
 			if ((nowTank->getLife() && anotherTank->getLife()) && (anotherTank->getID() != nowTank->getID()) && (nowTank->getRect().intersectsRect(anotherTank->getRect())))
@@ -370,6 +411,7 @@ void GameClient::update(float delta)
 			
 			// 子弹与守护目标
 			if (bullet->getRect().intersectsRect(m_bird_rect))
+
 			{
 				m_deleteBulletList.pushBack(bullet);		// 子弹消除
 				// 更换守护目标图像
@@ -440,26 +482,27 @@ void GameClient::update(float delta)
 		while(m_deleteBulletList.size())
 		{
 			auto bullet = m_deleteBulletList.at(0);
+			bullet->Blast();
 			m_deleteBulletList.eraseObject(bullet);
 			tank->getBulletList().eraseObject(bullet);
-			bullet->Blast();
 		}
 
 		// 清除删除砖块列表
 		while(m_deleteBrickList.size())
 		{
 			auto brick = m_deleteBrickList.at(0);
+			brick->Blast();
 			int x = brick->getPositionX(), y = brick->getPositionY();
 			m_map[x2i(x)][y2j(y)].status = ACCESS;	// 删除的方块对应的mapnode状态要改为可通过
 			m_deleteBrickList.eraseObject(brick);
 			m_bgList.eraseObject(brick);
-			brick->Blast();
 		}
 
 		// 清除删除坦克列表
 		while(m_deleteTankList.size())
 		{
 			auto tank = m_deleteTankList.at(0);
+			tank->Blast();
 			if (tank->getID() != PLAYER_TAG)
 			{
 				AI_ingame_num--;		// 如果是AI，则减少游戏内AI数量
@@ -477,9 +520,26 @@ void GameClient::update(float delta)
 			}
 			m_deleteTankList.eraseObject(tank);
 			m_tankList.eraseObject(tank);
-			tank->Blast();
 		}
+
+		m_deleteBulletList.clear();
+		m_deleteBrickList.clear();
+		m_deleteTankList.clear();
 	}
+
+	// debug，输出坦克坐标
+	std::string tankX = std::to_string(m_tank->getRect().getMidX());
+	std::string tankY = std::to_string(m_tank->getRect().getMidY());
+	std::string print_string = tankX + " " + tankY;
+
+	if (tank_pos == NULL)
+	{
+		tank_pos = Label::createWithTTF(print_string, "fonts/arial.ttf", 20);
+		tank_pos->setPosition(Vec2(150, 400));
+		this->addChild(tank_pos, 1);
+	}
+	tank_pos->setString(print_string);
+
 }
 
 // 初始化地图
@@ -620,10 +680,62 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 			m_tank->Stay(TANK_RIGHT);
 		}
 		break;
+
 	case cocos2d::EventKeyboard::KeyCode::KEY_K:
-		{
-			m_tank->Fire();
-		}
-		break;
+	{
+		m_tank->Fire();
 	}
+	break;
+	case cocos2d::EventKeyboard::KeyCode::KEY_F:
+	{
+		m_tank->Flash();		// 新型移动方式：闪现
+	}
+	break;
+	case cocos2d::EventKeyboard::KeyCode::KEY_L:
+	{
+		m_tank->Fire_high();	// 新型进攻方式
+	}
+	break;
+	}
+}
+
+void GameClient::pressPauseButton(Ref* pSender, Widget::TouchEventType type)
+{
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	RenderTexture* renderTexture = RenderTexture::create(visibleSize.width, visibleSize.height);
+
+	//遍历当前类的所有子节点信息，画入renderTexture中。
+	//这里类似截图。
+	renderTexture->begin();
+	this->getParent()->visit();
+	renderTexture->end();
+
+	Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.5f, Gamepause::createScene()));
+	//if (type == ui::Widget::TouchEventType::ENDED)
+	//	this->unscheduleUpdate();
+}
+void GameClient::pressMenuButton(Ref* pSender, Widget::TouchEventType type)
+{
+
+}
+void GameClient::pressReplayButton(Ref* pSender, Widget::TouchEventType type)
+{
+	if (type == ui::Widget::TouchEventType::ENDED)
+	{
+		//reset score board
+		for (int i = 0; i < 10; i++)
+		{
+			score_list[i] = 0;
+		}
+		Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.5f, this->createScene()));
+	}
+}
+
+
+
+
+int GameClient::get_score(int target, int score)
+{
+	if (target >= 0 && target <= 9)
+		return score_list[target];
 }

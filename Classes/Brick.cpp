@@ -24,6 +24,7 @@ bool Brick::init(Vec2 position, int gid)
 	else if (gid == WATER_TILE_GID)
 		m_sprite = Sprite::create("Chapter12/tank/tile.png", Rect(96, 16, 16, 16));	// Ë®
 
+
 	this->addChild(m_sprite);
 	m_sprite->setPosition(Vec2::ZERO);
 
@@ -33,14 +34,17 @@ bool Brick::init(Vec2 position, int gid)
 	return true;
 }
 
+
 Brick* Brick::create(Vec2 position, int gid)
 {
 	Brick* pRet = new(std::nothrow) Brick();
 	if (pRet && pRet->init(position, gid))
+
 	{
 		pRet->autorelease();
 		return pRet;
-	} else
+	}
+	else
 	{
 		delete pRet;
 		pRet = NULL;
@@ -51,6 +55,6 @@ Brick* Brick::create(Vec2 position, int gid)
 void Brick::Blast()
 {
 	this->setVisible(false);   // ×©¿éÏûÊ§
-	this->removeFromParent();  
+	this->removeFromParent();
 }
 

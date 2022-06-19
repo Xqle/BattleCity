@@ -18,6 +18,7 @@ public:
 	~Brick();
 	static Brick* create(Vec2 position, int gid);
 	virtual bool init(Vec2 position, int gid);
+
 	void Blast();
 
 	// get
@@ -27,6 +28,7 @@ private:
 	Sprite* m_sprite;  // 砖块精灵
 	Rect m_rect;       // 包围框
 	int GID;		   // 对应的GID
+
 };
 
 #endif

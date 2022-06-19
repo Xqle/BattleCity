@@ -6,8 +6,8 @@
 
 using namespace std;
 
-#define MAP_WIDTH 60  
-#define MAP_HEIGHT 40
+#define MAP_WIDTH 64
+#define MAP_HEIGHT 48
 #define UNIT 16 
 
 //定义节点的各种状态：
