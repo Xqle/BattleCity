@@ -38,6 +38,12 @@ bool GameClient::init()
 	m_map[x2i(m_x) + 3][y2j(m_y) - 3].status = DESTINATION;
 	m_destination = &m_map[x2i(m_x) + 3][y2j(m_y) - 3];
 	
+	// 守护目标
+	m_bird = Sprite::create("Chapter12/tank/tile.png", Rect(160, 0, 32, 32));	// 守护目标
+	m_bird->setPosition(m_bird_spawnpointX, m_bird_spawnpointY);
+	m_bird_rect = Rect(m_bird->getPositionX() - 16, m_bird->getPositionY() - 16, 32, 32);
+	// m_bgList.pushBack(bird);
+	this->addChild(m_bird, 2);
 
 	// AI
 	AI_init();
@@ -256,10 +262,44 @@ void GameClient::update(float delta)
 	// 坦克与 坦克/物品 的碰撞检测
 	for (int i = 0;i < m_tankList.size(); i++)
 	{
+		auto nowTank = m_tankList.at(i);
+		// 坦克与守护目标
+		if (nowTank->getLife() && (nowTank->getRect().intersectsRect(m_bird_rect)) && (nowTank->getDirection() == TANK_UP))
+		{
+			// 方法1：履带持续转动
+			nowTank->setHindered(TANK_UP);
+			nowTank->setPositionY(nowTank->getPositionY() - 1); // 避免检测成功后坦克持续受，无法行动造成卡住
+			// 方法2：履带停止转动
+			// nowTank->Stay(TANK_UP);
+		}
+		else if (nowTank->getLife() && (nowTank->getRect().intersectsRect(m_bird_rect)) && (nowTank->getDirection() == TANK_DOWN))
+		{
+			// 方法1：履带持续转动
+			nowTank->setHindered(TANK_DOWN);
+			nowTank->setPositionY(nowTank->getPositionY() + 1); // 避免检测成功后坦克持续受，无法行动造成卡住
+			// 方法2：履带停止转动
+			// nowTank->Stay(TANK_DOWN);
+		}
+		else if (nowTank->getLife() && (nowTank->getRect().intersectsRect(m_bird_rect)) && (nowTank->getDirection() == TANK_LEFT))
+		{
+			// 方法1：履带持续转动
+			nowTank->setHindered(TANK_LEFT);
+			nowTank->setPositionX(nowTank->getPositionX() + 1); // 避免检测成功后坦克持续受，无法行动造成卡住
+			// 方法2：履带停止转动
+			// nowTank->Stay(TANK_LEFT);
+		}
+		else if (nowTank->getLife() && (nowTank->getRect().intersectsRect(m_bird_rect)) && (nowTank->getDirection() == TANK_RIGHT))
+		{
+			// 方法1：履带持续转动
+			nowTank->setHindered(TANK_RIGHT);
+			nowTank->setPositionX(nowTank->getPositionX() - 1); // 避免检测成功后坦克持续受，无法行动造成卡住
+			// 方法2：履带停止转动
+			// nowTank->Stay(TANK_RIGHT);
+		}
+
 		// 坦克与砖块
 		for (int j = 0; j < m_bgList.size(); j++)
 		{
-			auto nowTank = m_tankList.at(i);
 			auto nowBrick = m_bgList.at(j);
 			if (nowTank->getLife() && (nowTank->getRect().intersectsRect(nowBrick->getRect())) && (nowTank->getDirection() == TANK_UP))
 			{
@@ -298,7 +338,6 @@ void GameClient::update(float delta)
 		// 坦克与坦克
 		for (int j = 0; j < m_tankList.size(); j ++)
 		{
-			auto nowTank = m_tankList.at(i);
 			auto anotherTank = m_tankList.at(j);
 			if ((nowTank->getLife() && anotherTank->getLife()) && (anotherTank->getID() != nowTank->getID()) && (nowTank->getRect().intersectsRect(anotherTank->getRect())))
 			{
@@ -328,16 +367,29 @@ void GameClient::update(float delta)
 		{
 			auto bullet = tank->getBulletList().at(j);
 			bool is_hit = false;
+			
+			// 子弹与守护目标
+			if (bullet->getRect().intersectsRect(m_bird_rect))
+			{
+				m_deleteBulletList.pushBack(bullet);		// 子弹消除
+				// 更换守护目标图像
+				this->removeChild(m_bird);
+				m_bird = Sprite::create("Chapter12/tank/tile.png", Rect(192, 0, 32, 32));	// 死亡的守护目标
+				m_bird->setPosition(m_bird_spawnpointX, m_bird_spawnpointY);
+				this->addChild(m_bird, 2);
+				is_hit = true;
+			}
+
 			// 子弹与砖块
 			for (int k = 0; k < m_bgList.size() && !is_hit; k++)
 			{
 				auto brick = m_bgList.at(k);
-				if (brick->getGID() == 7) continue;		// 水可以穿过
+				if (brick->getGID() == WATER_TILE_GID) continue;		// 水可以穿过
 				if (bullet->getRect().intersectsRect(brick->getRect()))
 				{
 					is_hit = true;
 					m_deleteBulletList.pushBack(bullet);	// 子弹消除
-					if (brick->getGID() == 3 && tank->getLevel() < 2) continue;		// 白块要一定等级才可命中
+					if (brick->getGID() == WHITE_BRICK_GID && tank->getLevel() < 2) continue;		// 白块要一定等级才可命中
 					m_deleteBrickList.pushBack(brick);		// 砖块消除
 				}
 			}

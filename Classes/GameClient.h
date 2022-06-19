@@ -73,6 +73,11 @@ private:
 	Vector<Brick*>  m_deleteBrickList;    // 删除砖块列表
 	Vector<Tank*>   m_deleteTankList;     // 删除坦克列表
 
+	// 守护目标
+	Sprite* m_bird;
+	Rect	m_bird_rect;
+	double	m_bird_spawnpointX = WINDOWWIDTH / 2;
+	double	m_bird_spawnpointY = WINDOWHEIGHT / 5;
 	// 玩家
 	Tank* m_tank;       // 主坦克
 	int	   player_life = PLAYER_LIFE;
@@ -88,6 +93,7 @@ private:
 	int AI_remain_num;			// 剩余多少个AI			(<= MAX_AI_NUM)
 	int AI_ingame_num;			// 当前在屏幕里的AI		(<= MAX_INGAME_AI_NUM)
 	int AI_next_offset;			// 下一个创建的AI是第几个AI
+
 	// A*算法
 	TMXLayer* m_mapLayer;		//瓦片地图的图层对象
 	Size m_visibleSize;			//屏幕的可见尺寸
