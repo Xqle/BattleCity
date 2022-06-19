@@ -15,12 +15,18 @@ using namespace cocos2d;
 #define y2j(y) (VISIBLE_HEIGHT - y) / UNIT
 #define i2x(i) (i + 0.5) * UNIT
 #define j2y(j) VISIBLE_HEIGHT - (j + 0.5) * UNIT)
+
+// 玩家
 #define PLAYER_TAG 110
+#define PLAYER_LIFE 5
+
+// AI
 #define AI_TAG 111
 #define MAX_AI_NUM 10
 #define MAX_INGAME_AI_NUM 4
+
 static int tankcount = 0;     // 记录当前坦克数
-static int NET_TAG = 11111;   
+
 
 class GameClient : public Scene
 {
@@ -61,13 +67,18 @@ public:
 private:
 	Vector<Brick*>  m_bgList;     // 背景块列表
 	Vector<Tank*>   m_tankList;   // 坦克列表
-	Tank*           m_tank;       // 主坦克
 	Vector<Tank*>	m_drawList;   // 已绘制的坦克
 	
 	Vector<Bullet*> m_deleteBulletList;   // 删除子弹列表
 	Vector<Brick*>  m_deleteBrickList;    // 删除砖块列表
 	Vector<Tank*>   m_deleteTankList;     // 删除坦克列表
 
+	// 玩家
+	Tank* m_tank;       // 主坦克
+	int	   player_life = PLAYER_LIFE;
+	double player_spawnpointX = WINDOWWIDTH / 2 - 8;
+	double player_spawnpointY = 104;
+	double invulnerable_timer = 0;	// 无敌时间
 	// AI
 	double AI_spawnpointX[MAX_INGAME_AI_NUM] = { WINDOWWIDTH / 5 + 3, WINDOWWIDTH * 2 / 5, WINDOWWIDTH * 3 / 5, WINDOWWIDTH * 4 / 5 };
 	double AI_spawnpointY = 600;	// AI 出生点

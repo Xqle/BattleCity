@@ -66,7 +66,7 @@ bool Tank::init(int ID, float x, float y, int dir, int kind)
 	m_sprite = Sprite::createWithTexture(m_texture, Rect(m_textureX-14.0, m_textureY-14.0, 28, 28));
 	m_rect = Rect(this->getPositionX() - 16, this->getPositionY() - 16, 32, 32);
 	m_sprite->setPosition(Vec2::ZERO);
-	m_sprite->setScale(TANKSIZE/28);
+	m_sprite->setScale(TANKSIZE / 28.0);
 	this->addChild(m_sprite);
 
 	this->scheduleUpdate();
@@ -288,5 +288,7 @@ void Tank::Stay(int dir)
 void Tank::deleteObj(Sprite* obj)
 {
 	obj->removeFromParent();
-	this->removeFromParent();
+	// obj->setVisible(false);
+	if (this->getLife() <= 0)
+		this->removeFromParent();
 }

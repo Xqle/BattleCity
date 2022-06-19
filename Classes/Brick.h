@@ -5,6 +5,12 @@
 USING_NS_CC;
 using namespace cocos2d;
 
+	
+#define RED_BRICK_GID	1
+#define WHITE_BRICK_GID 3
+#define WATER_TILE_GID	7
+#define BIRD_TILE_TAG	8
+
 class Brick : public Sprite
 {
 public:

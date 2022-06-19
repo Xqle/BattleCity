@@ -29,12 +29,15 @@ bool GameClient::init()
 	createBackGround();
 
 	// 玩家
-	m_tank = Tank::create(PLAYER_TAG, WINDOWWIDTH / 2 + 8, 96 + 8, TANK_UP, 2);
-	m_tankList.pushBack(m_tank);
-	int m_x = m_tank->getPositionX(), m_y = m_tank->getPositionY();
-	m_map[x2i(m_x)][y2j(m_y)].status = DESTINATION;
-	m_destination = &m_map[x2i(m_x)][y2j(m_y)];
+	m_tank = Tank::create(PLAYER_TAG, player_spawnpointX, player_spawnpointY, TANK_UP, 2);
+	m_tankList.pushBack(m_tank); 
 	this->addChild(m_tank);
+
+	// A*目的地设置
+	int m_x = m_tank->getPositionX(), m_y = m_tank->getPositionY();
+	m_map[x2i(m_x) + 3][y2j(m_y) - 3].status = DESTINATION;
+	m_destination = &m_map[x2i(m_x) + 3][y2j(m_y) - 3];
+	
 
 	// AI
 	AI_init();
@@ -149,7 +152,7 @@ void GameClient::moveOnPath(mapNode* tempNode, int tag)
 
 
 		//绘制从起点到下一个地图单元的线段
-		m_draw[tag - AI_TAG]->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
+		// m_draw[tag - AI_TAG]->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
 		//将当前坐标保存为下一次绘制的起点
 		fromX = realX;
 		fromY = realY;
@@ -223,13 +226,14 @@ void GameClient::AI_update(float delta)
 void GameClient::update(float delta)
 {
 	AI_update(delta);
+	invulnerable_timer += delta;	
 	// 维护坦克列表
 	for (int i = 0;i < m_tankList.size(); i++)
 	{
 		auto nowTank = m_tankList.at(i);
 		if (nowTank->getLife() <= 0)
 		{
-			m_deleteTankList.pushBack(nowTank);
+			m_deleteTankList.pushBack(nowTank);	// 消除坦克
 			// m_tankList.eraseObject(nowTank);
 		}
 	}
@@ -312,24 +316,26 @@ void GameClient::update(float delta)
 
 		// 子弹与 坦克/子弹/砖块 的碰撞
 		auto tank = m_tankList.at(i);
-		for (int j = 0; j < tank->getBulletList().size(); j ++)
+		for (int j = 0; j < tank->getBulletList().size(); j ++)		
 		{
 			auto bullet = tank->getBulletList().at(j);
+			bool is_hit = false;
 			// 子弹与砖块
-			for (int k = 0; k < m_bgList.size(); k++)
+			for (int k = 0; k < m_bgList.size() && !is_hit; k++)
 			{
 				auto brick = m_bgList.at(k);
 				if (brick->getGID() == 7) continue;		// 水可以穿过
 				if (bullet->getRect().intersectsRect(brick->getRect()))
 				{
+					is_hit = true;
 					m_deleteBulletList.pushBack(bullet);	// 子弹消除
-					if (brick->getGID() == 3) continue;		// 白块不可消除
+					if (brick->getGID() == 3 && tank->getLevel() < 2) continue;		// 白块要一定等级才可命中
 					m_deleteBrickList.pushBack(brick);		// 砖块消除
 				}
 			}
 			
 			// 子弹与坦克 / 子弹
-			for (int k = 0;k < m_tankList.size(); k ++)
+			for (int k = 0; k < m_tankList.size() && !is_hit; k ++)		// tank子弹击中则is_hit为true
 			{
 				// 子弹与坦克
 				auto tank_another = m_tankList.at(k);
@@ -340,36 +346,45 @@ void GameClient::update(float delta)
 				if (bullet->getRect().intersectsRect(tank_another->getRect()))
 				{
 					m_deleteBulletList.pushBack(bullet);		// 子弹消除
-					m_deleteTankList.pushBack(tank_another);	// 坦克消除
-					break;	// 该子弹已命中，不能同时命中两个目标
+					int tank_another_ID = tank_another->getID();
+					if (tank_another_ID == PLAYER_TAG && invulnerable_timer > 3.0f
+						|| tank_another_ID != PLAYER_TAG)
+					{
+						m_deleteTankList.pushBack(tank_another); 	// 玩家无敌时间过了或者其他坦克，直接消除
+						if (tank_another_ID == PLAYER_TAG) invulnerable_timer = 0;
+					}
+					is_hit = true;	// tank的这颗子弹已经打完
 				}
 
+				if (k < i) continue;	// 防止两颗子弹命中时被判断两次
+
 				// 子弹与子弹
-				for (int t = 0; t < tank_another->getBulletList().size(); t++)
+				for (int t = 0; t < tank_another->getBulletList().size() && !is_hit; t++)
 				{
 					auto bullet_another = tank_another->getBulletList().at(t);
 					if (bullet->getRect().intersectsRect(bullet_another->getRect()))
 					{
-						m_deleteBulletList.pushBack(bullet);		// 子弹消除
+						m_deleteBulletList.pushBack(bullet);				// 子弹消除
 						m_deleteBulletList.pushBack(bullet_another);		// 子弹消除
+						is_hit = true;
 					}
 				}
 			}
 		}
 
 		// 清除删除子弹列表
-		for (int j = 0; j < m_deleteBulletList.size(); j ++)
+		while(m_deleteBulletList.size())
 		{
-			auto bullet = m_deleteBulletList.at(j);
+			auto bullet = m_deleteBulletList.at(0);
 			m_deleteBulletList.eraseObject(bullet);
 			tank->getBulletList().eraseObject(bullet);
 			bullet->Blast();
 		}
 
 		// 清除删除砖块列表
-		for (int j = 0; j < m_deleteBrickList.size(); j ++)
+		while(m_deleteBrickList.size())
 		{
-			auto brick = m_deleteBrickList.at(j);
+			auto brick = m_deleteBrickList.at(0);
 			int x = brick->getPositionX(), y = brick->getPositionY();
 			m_map[x2i(x)][y2j(y)].status = ACCESS;	// 删除的方块对应的mapnode状态要改为可通过
 			m_deleteBrickList.eraseObject(brick);
@@ -378,21 +393,27 @@ void GameClient::update(float delta)
 		}
 
 		// 清除删除坦克列表
-		for (int j = 0; j < m_deleteTankList.size(); j ++)
+		while(m_deleteTankList.size())
 		{
-			auto tank = m_deleteTankList.at(j);
-			if (tank->getID() != 110)
+			auto tank = m_deleteTankList.at(0);
+			if (tank->getID() != PLAYER_TAG)
 			{
 				AI_ingame_num--;		// 如果是AI，则减少游戏内AI数量
 				AI_remain_num--;		// 如果是AI，减少剩余AI数量	
+			}
+			else if (tank->getID() == PLAYER_TAG )
+			{
+				if (--player_life > 0)
+				{
+					m_tank = Tank::create(PLAYER_TAG, player_spawnpointX, player_spawnpointY, TANK_UP, 2);
+					m_tankList.pushBack(m_tank);
+					this->addChild(m_tank);
+				}
 			}
 			m_deleteTankList.eraseObject(tank);
 			m_tankList.eraseObject(tank);
 			tank->Blast();
 		}
-		m_deleteBulletList.clear();
-		m_deleteBrickList.clear();
-		m_deleteTankList.clear();
 	}
 }
 
