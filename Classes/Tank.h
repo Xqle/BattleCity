@@ -20,7 +20,7 @@ using namespace cocos2d::ui;
 #define TANK_LEFT    3    // TANK向左状态
 #define TANK_RIGHT   4    // TANK向右状态
 #define TANK_STAY    5    // TANK停止状态
-
+#define MAX_LEVEL	 4	  // 最高升级到4级
 class Tank : public BaseObject
 {
 public:

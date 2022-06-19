@@ -226,7 +226,15 @@ void GameClient::AI_update(float delta)
 void GameClient::update(float delta)
 {
 	AI_update(delta);
-	invulnerable_timer += delta;	
+	invulnerable_timer += delta;	// 无敌时间
+	
+	// 坦克升级
+	if (m_tank->getLevel() < std::min(enemy_kill / 2 + 1, MAX_LEVEL))
+	{
+		m_tank->setLevel(std::min(enemy_kill / 2 + 1, MAX_LEVEL));
+		m_tank->MyDraw();
+	}
+
 	// 维护坦克列表
 	for (int i = 0;i < m_tankList.size(); i++)
 	{
@@ -347,11 +355,15 @@ void GameClient::update(float delta)
 				{
 					m_deleteBulletList.pushBack(bullet);		// 子弹消除
 					int tank_another_ID = tank_another->getID();
-					if (tank_another_ID == PLAYER_TAG && invulnerable_timer > 3.0f
-						|| tank_another_ID != PLAYER_TAG)
+					if (tank_another_ID == PLAYER_TAG && invulnerable_timer > 3.0f)
 					{
 						m_deleteTankList.pushBack(tank_another); 	// 玩家无敌时间过了或者其他坦克，直接消除
-						if (tank_another_ID == PLAYER_TAG) invulnerable_timer = 0;
+						invulnerable_timer = 0;
+					}
+					else if (tank_another_ID != PLAYER_TAG)
+					{
+						m_deleteTankList.pushBack(tank_another);
+						enemy_kill++;
 					}
 					is_hit = true;	// tank的这颗子弹已经打完
 				}
@@ -407,6 +419,7 @@ void GameClient::update(float delta)
 				{
 					m_tank = Tank::create(PLAYER_TAG, player_spawnpointX, player_spawnpointY, TANK_UP, 2);
 					m_tankList.pushBack(m_tank);
+					enemy_kill = 0;
 					this->addChild(m_tank);
 				}
 			}

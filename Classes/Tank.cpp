@@ -116,6 +116,7 @@ void Tank::MoveRight()
 void Tank::Fire()
 {
 	Vec2 position;
+	int level = this->getLevel();
 	switch (this->getDirection())
 	{
 	case TANK_UP:
@@ -131,7 +132,8 @@ void Tank::Fire()
 		position = Vec2(this->getPositionX() + 14, this->getPositionY());
 		break;
 	}
-	auto bullet = Bullet::create(position, 3, this->getDirection());
+	// 子弹加速
+	auto bullet = Bullet::create(position, 3 * this->getSpeed(), this->getDirection());
 	m_bulletList.pushBack(bullet);            // 添加到子弹列表
 	this->getParent()->addChild(bullet, 8);   // 添加到游戏场景
 }
@@ -205,6 +207,7 @@ void Tank::Blast()
 
 void Tank::update(float t)
 {
+	this->setSpeed(1 + (this->getLevel() - 1) / (double)(MAX_LEVEL - 1));		// 更新速度
 	m_isMoving = m_moveUp | m_moveDown | m_moveLeft | m_moveRight;				 // 更新移动状态
 	m_rect = Rect(this->getPositionX() - 16, this->getPositionY() - 16, 32, 32); // 更新rect
 	// m_rect = Rect(this->getPositionX() - 14, this->getPositionY() - 14, 28, 28); // 更新rect

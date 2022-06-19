@@ -79,6 +79,8 @@ private:
 	double player_spawnpointX = WINDOWWIDTH / 2 - 8;
 	double player_spawnpointY = 104;
 	double invulnerable_timer = 0;	// 无敌时间
+	int enemy_kill = 0;		// 击杀敌人数量
+
 	// AI
 	double AI_spawnpointX[MAX_INGAME_AI_NUM] = { WINDOWWIDTH / 5 + 3, WINDOWWIDTH * 2 / 5, WINDOWWIDTH * 3 / 5, WINDOWWIDTH * 4 / 5 };
 	double AI_spawnpointY = 600;	// AI 出生点
