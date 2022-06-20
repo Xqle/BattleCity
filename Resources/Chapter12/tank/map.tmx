@@ -12307,7 +12307,7 @@
    <tile/>
   </data>
  </layer>
- <layer id="5" name="boss" width="64" height="48">
+ <layer id="5" name="boss" width="64" height="48" visible="0">
   <data>
    <tile/>
    <tile/>

@@ -25,7 +25,7 @@ using namespace cocos2d;
 
 // AI
 #define AI_TAG 111
-#define MAX_AI_NUM 1
+#define MAX_AI_NUM 10
 #define MAX_INGAME_AI_NUM 3
 
 static int tankcount = 0;     // 记录当前坦克数
@@ -47,8 +47,6 @@ public:
 	char maxValKey();
 	void onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event);
 	void onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event); 
-
-	void onTouchEnded(EventKeyboard::KeyCode keyCode, Event* event);
 
 	void pressMenuButton(Ref* pSender, Widget::TouchEventType type);
 	void pressReplayButton(Ref* pSender, Widget::TouchEventType type);

@@ -33,8 +33,6 @@ bool GameClient::init()
 	seffect_is_play = false;
 	gameovertimer = 0;
 
-	// CocosDenshion::SimpleAudioEngine::getInstance()->setBackgroundMusicVolume(0.2f);
-	// CocosDenshion::SimpleAudioEngine::getInstance()->setEffectsVolume(0.2f);
 
 	// 背景
 	m_visibleSize = Director::getInstance()->getVisibleSize();
@@ -66,8 +64,6 @@ bool GameClient::init()
 	key_listener->onKeyReleased = CC_CALLBACK_2(GameClient::onKeyReleased, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
 
-	//auto touch_listener = EventListenerTouchOneByOne::create();
-	//touch_listener->onTouchEnded = CC_CALLBACK_2(GameClient)
 
 	// 背景音乐
 	CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("minecraft.mp3", true);
@@ -95,15 +91,13 @@ bool GameClient::init()
 	// scoreUI 下的text
 	P1score = (Text*)(scoreUI->getChildByName("player1_score_label"));
 	P1score->setString(std::to_string(m_score));
-	//P1score->setString("123151");
-	//scoreUI->getChildByName("Player2_score_text")->setVisible(false);
 
 	// 粒子特效
 	if (cur_map_level == 3)
 	{
 		CCParticleSystem* particleSystem = CCParticleRain::create();
 		particleSystem->setTexture(CCTextureCache::sharedTextureCache()->addImage("fire.png"));
-		particleSystem->setStartSize(7.0);
+		particleSystem->setStartSize(10.0);
 		addChild(particleSystem);
 	}
 
@@ -148,7 +142,7 @@ void GameClient::update(float delta)
 	// 坦克升级
 	if (m_tank->getLevel() < std::min(enemy_kill / 2 + 1, MAX_LEVEL))
 	{
-		CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("Upgrade.wav");	// 升级音效
+		CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Upgrade.wav");	// 升级音效
 		m_tank->setLevel(std::min(enemy_kill / 2 + 1, MAX_LEVEL));
 		m_tank->MyDraw();
 	}
@@ -603,7 +597,7 @@ void GameClient::moveOnPath(mapNode* tempNode, int tag)
 		actionVector.pushBack(moveAction);
 
 		//绘制从起点到下一个地图单元的线段
-		m_draw[tag - AI_TAG]->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
+		// m_draw[tag - AI_TAG]->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
 		//将当前坐标保存为下一次绘制的起点
 		fromX = realX;
 		fromY = realY;
