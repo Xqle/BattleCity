@@ -176,9 +176,9 @@ void Tank::Fire_high()
 	{
 	case TANK_UP:
 		position = Vec2(this->getPositionX(), this->getPositionY() + 14);
-		bullet1 = Bullet::create(position, 3, TANK_UP);
-		bullet2 = Bullet::create(position, 3, TANK_LEFT);
-		bullet3 = Bullet::create(position, 3, TANK_RIGHT);
+		bullet1 = Bullet::create(position, 3 * this->getSpeed(), TANK_UP);
+		bullet2 = Bullet::create(position, 3 * this->getSpeed(), TANK_LEFT);
+		bullet3 = Bullet::create(position, 3 * this->getSpeed(), TANK_RIGHT);
 		m_bulletList.pushBack(bullet1);
 		m_bulletList.pushBack(bullet2);      
 		m_bulletList.pushBack(bullet3);     
@@ -188,9 +188,9 @@ void Tank::Fire_high()
 		break;
 	case TANK_DOWN:
 		position = Vec2(this->getPositionX(), this->getPositionY() - 14);
-		bullet1 = Bullet::create(position, 3, TANK_DOWN);
-		bullet2 = Bullet::create(position, 3, TANK_LEFT);
-		bullet3 = Bullet::create(position, 3, TANK_RIGHT);
+		bullet1 = Bullet::create(position, 3 * this->getSpeed(), TANK_DOWN);
+		bullet2 = Bullet::create(position, 3 * this->getSpeed(), TANK_LEFT);
+		bullet3 = Bullet::create(position, 3 * this->getSpeed(), TANK_RIGHT);
 		m_bulletList.pushBack(bullet1);
 		m_bulletList.pushBack(bullet2);
 		m_bulletList.pushBack(bullet3);
@@ -200,9 +200,9 @@ void Tank::Fire_high()
 		break;
 	case TANK_LEFT:
 		position = Vec2(this->getPositionX() - 14, this->getPositionY());
-		bullet1 = Bullet::create(position, 3, TANK_UP);
-		bullet2 = Bullet::create(position, 3, TANK_LEFT);
-		bullet3 = Bullet::create(position, 3, TANK_DOWN);
+		bullet1 = Bullet::create(position, 3 * this->getSpeed(), TANK_UP);
+		bullet2 = Bullet::create(position, 3 * this->getSpeed(), TANK_LEFT);
+		bullet3 = Bullet::create(position, 3 * this->getSpeed(), TANK_DOWN);
 		m_bulletList.pushBack(bullet1);
 		m_bulletList.pushBack(bullet2);
 		m_bulletList.pushBack(bullet3);
@@ -212,9 +212,9 @@ void Tank::Fire_high()
 		break;
 	case TANK_RIGHT:
 		position = Vec2(this->getPositionX() + 14, this->getPositionY());
-		bullet1 = Bullet::create(position, 3, TANK_UP);
-		bullet2 = Bullet::create(position, 3, TANK_DOWN);
-		bullet3 = Bullet::create(position, 3, TANK_RIGHT);
+		bullet1 = Bullet::create(position, 3 * this->getSpeed(), TANK_UP);
+		bullet2 = Bullet::create(position, 3 * this->getSpeed(), TANK_DOWN);
+		bullet3 = Bullet::create(position, 3 * this->getSpeed(), TANK_RIGHT);
 		m_bulletList.pushBack(bullet1);
 		m_bulletList.pushBack(bullet2);
 		m_bulletList.pushBack(bullet3);
@@ -223,10 +223,6 @@ void Tank::Fire_high()
 		this->getParent()->addChild(bullet3, 8);
 		break;
 	}
-	//auto bullet = Bullet::create(position, 3, this->getDirection());
-
-	//m_bulletList.pushBack(bullet);            // 添加到子弹列表
-	//this->getParent()->addChild(bullet, 8);   // 添加到游戏场景
 }
 
 // 坦克闪现，有一定概率不能穿墙
