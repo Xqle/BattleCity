@@ -25,14 +25,25 @@ bool VictoryScene::init()
 		return false;
 	}
 	LoadingUI = GUIReader::getInstance()->widgetFromJsonFile("victoryUI/victoryUI.json");
-	addChild(LoadingUI, 100);
+
 	// auto key_listener = EventListenerKeyboard::create();
 	//key_listener->onKeyReleased = CC_CALLBACK_2(LoadingScene::onKeyReleased, this);
 	// Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
 
+	auto title_loading = (ImageView*)(LoadingUI->getChildByName("star3"));
+	title_loading->setVisible(false);
+	title_loading = (ImageView*)(LoadingUI->getChildByName("star1"));
+	title_loading->setVisible(false);
+	title_loading = (ImageView*)(LoadingUI->getChildByName("star2"));
+	title_loading->setVisible(false);
+
+	auto total_score = (Text*)(LoadingUI->getChildByName("total_score_text"));
+	total_score->setString(std::to_string(m_score));
+
+	addChild(LoadingUI, 100);
 	victory_flag = 1;
 	if (victory_flag < 5)
-		this->schedule(schedule_selector(VictoryScene::loading_func), 0.1f);
+		this->schedule(schedule_selector(VictoryScene::loading_func), 1.0f);
 
 	return true;
 }
@@ -50,9 +61,9 @@ void VictoryScene::loading_func(float dt)
 		if (victory_flag == 2 && m_score >= 480)
 		{
 			victory_flag = 3;
-			auto title_loading = (ImageView*)(LoadingUI->getChildByName("star1"));
-			title_loading->setVisible(false);
-			title_loading = (ImageView*)(LoadingUI->getChildByName("star2"));
+			//auto title_loading = (ImageView*)(LoadingUI->getChildByName("star1"));
+			//title_loading->setVisible(false);
+			auto title_loading = (ImageView*)(LoadingUI->getChildByName("star2"));
 			title_loading->setVisible(true);
 		}
 		else
@@ -60,9 +71,9 @@ void VictoryScene::loading_func(float dt)
 			if (victory_flag == 3 && m_score >= 640)
 			{
 				victory_flag = 4;
-				auto title_loading = (ImageView*)(LoadingUI->getChildByName("star2"));
-				title_loading->setVisible(false);
-				title_loading = (ImageView*)(LoadingUI->getChildByName("star3"));
+				//auto title_loading = (ImageView*)(LoadingUI->getChildByName("star2"));
+				//title_loading->setVisible(false);
+				auto title_loading = (ImageView*)(LoadingUI->getChildByName("star3"));
 				title_loading->setVisible(true);
 			}
 		}

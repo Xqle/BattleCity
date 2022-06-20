@@ -98,6 +98,16 @@ bool GameClient::init()
 	//P1score->setString("123151");
 	//scoreUI->getChildByName("Player2_score_text")->setVisible(false);
 
+	// Á£×ÓÌØÐ§
+	if (cur_map_level == 3)
+	{
+		CCParticleSystem* particleSystem = CCParticleRain::create();
+		particleSystem->setTexture(CCTextureCache::sharedTextureCache()->addImage("fire.png"));
+		particleSystem->setStartSize(7.0);
+		addChild(particleSystem);
+	}
+
+
 	return true;
 }
 
