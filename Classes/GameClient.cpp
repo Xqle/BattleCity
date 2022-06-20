@@ -95,6 +95,13 @@ bool GameClient::init()
 	remain_enemy_text = (Text*)(scoreUI->getChildByName("remain_text"));
 	remain_enemy_text->setString(std::to_string(AI_remain_num));
 
+	life = (Text*)(scoreUI->getChildByName("life"));
+	life->setString(std::to_string(player_life));
+
+	auto heart = (ImageView*)(scoreUI->getChildByName("heart"));
+	//heart->setPosition();
+	//heart->setScale(0.2);
+
 	// 粒子特效
 	if (cur_map_level == 3)
 	{
@@ -119,6 +126,12 @@ Scene* GameClient::createScene()
 /****		逻辑相关		****/
 void GameClient::update(float delta)
 {
+	invulnerable_timer += delta;	// 无敌时间
+	remain_enemy_text->setString(std::to_string(AI_remain_num));
+	life->setString(std::to_string(player_life));
+
+
+	P1score->setString(std::to_string(m_score));	// 分数
 	// 判断游戏结束
 	if (is_gameover || is_success)
 	{
@@ -139,9 +152,8 @@ void GameClient::update(float delta)
 	}
 
 	AI_update(delta);	// AI补充
-	invulnerable_timer += delta;	// 无敌时间
-	P1score->setString(std::to_string(m_score));	// 分数
-	remain_enemy_text->setString(std::to_string(AI_remain_num));
+
+
 
  
 	// 坦克升级
