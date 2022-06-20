@@ -395,7 +395,6 @@ void GameClient::update(float delta)
 	tank_pos->setString(print_string);
 
 }
-
 void GameClient::success()
 {
 	this->unscheduleUpdate();
@@ -409,15 +408,85 @@ void GameClient::success()
 		Director::getInstance()->popScene();
 	}
 }
-
 void GameClient::gameover()
 {
 	// 游戏结束
 	this->unscheduleUpdate();
-	cur_map_level = 1;
-	m_score = 0;
-	Director::getInstance()->replaceScene(CCTransitionCrossFade::create(0.5f, GameClient::createScene()));
+	this->unscheduleAllCallbacks();
+	this->unscheduleAllSelectors();
+
+	for (int i = 0; i < m_tankList.size(); i++)
+	{
+		auto tank = m_tankList.at(i);
+		tank->unscheduleUpdate();
+		tank->stopAllActions();
+	}
+
+
+	CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+	CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Loser.mp3");
+
+	// 打印“You Lose!”
+	cocos2d::Label* tip;
+	tip = Label::createWithTTF("You Lose!", "fonts/Marker Felt.ttf", 48);
+	tip->setPosition(Vec2(m_visibleSize.width / 2, m_visibleSize.height / 2 + 120));
+	this->addChild(tip, 10);
+
+	// 生成ReplayButton和ReplayLabel
+	auto ReplayButton = Button::create("btn_normal.png", "btn_pressed.png");
+	auto ReplayLabel = Label::createWithTTF("Replay", "fonts/Marker Felt.ttf", 48);
+	ReplayButton->setPosition(Vec2(m_visibleSize.width / 2, m_visibleSize.height / 2));
+	ReplayLabel->setPosition(Vec2(m_visibleSize.width / 2, m_visibleSize.height / 2));
+	this->addChild(ReplayButton, 10);
+	this->addChild(ReplayLabel, 11);
+
+	// Replay按钮监听
+	ReplayButton->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type)
+		{
+			switch (type)
+			{
+			case ui::Widget::TouchEventType::BEGAN:
+				break;
+			case ui::Widget::TouchEventType::ENDED:
+				log("ReplayButton is clicked!");
+				// 渐入渐出转场
+				cur_map_level = 1;
+				m_score = 0;
+				Director::getInstance()->popScene();
+				break;
+			default:
+				break;
+			}
+		}
+	);
+
+	// 添加Quit按钮
+	auto QuitButton = Button::create("btn_normal.png", "btn_pressed.png");
+	auto QuitLabel = Label::createWithTTF("Quit", "fonts/Marker Felt.ttf", 48);
+	QuitButton->setPosition(Vec2(m_visibleSize.width / 2, m_visibleSize.height / 2 - 80));
+	QuitLabel->setPosition(Vec2(m_visibleSize.width / 2, m_visibleSize.height / 2 - 80));
+	this->addChild(QuitButton, 10);
+	this->addChild(QuitLabel, 11);
+
+	// Quit按钮监听
+	QuitButton->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type)
+		{
+			switch (type)
+			{
+			case ui::Widget::TouchEventType::BEGAN:
+				break;
+			case ui::Widget::TouchEventType::ENDED:
+				log("QuitButton is clicked!");
+				exit(0);	// 退出游戏
+				break;
+			default:
+				break;
+			}
+		}
+	);
 }
+/****						****/
+
 
 /****		A* 算法相关			****/
 int GameClient::aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag)

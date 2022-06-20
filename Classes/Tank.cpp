@@ -385,6 +385,5 @@ void Tank::deleteObj(Sprite* obj)
 {
 	obj->removeFromParent();
 	// obj->setVisible(false);
-	if (this->getLife() <= 0)
-		this->removeFromParent();
+	// this->removeFromParent();
 }
