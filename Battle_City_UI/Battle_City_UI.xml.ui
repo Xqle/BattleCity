@@ -10,13 +10,14 @@
   <JsonList>
     <string>coverUI.json</string>
     <string>gameUI.json</string>
+    <string>loadingUI.json</string>
     <string>pauseUI.json</string>
     <string>scoreUI.json</string>
-    <string>Battle_City_UI_5.json</string>
+    <string>victoryUI.json</string>
   </JsonList>
   <imageFileList />
   <JsonSuffix>.json</JsonSuffix>
-  <CurrentUIJson>coverUI.json</CurrentUIJson>
+  <CurrentUIJson>scoreUI.json</CurrentUIJson>
   <CanvasSize>
     <Width>1024</Width>
     <Height>768</Height>

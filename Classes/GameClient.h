@@ -72,7 +72,7 @@ public:
 	Button* Replaybtn;
 	Button* Pausebtn;
 
-	TextBMFont* P1score;
+	Text* P1score;
 	TextBMFont* P2score;
 
 	bool stopped;
