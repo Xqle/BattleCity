@@ -301,6 +301,10 @@ void Tank::Blast()
 		CallFunc::create(CC_CALLBACK_0(Tank::deleteObj, this, explode)),
 		NULL
 		));
+
+	CCParticleSystem* explode_particle = CCParticleExplosion::create();
+	explode_particle->setTexture(CCTextureCache::sharedTextureCache()->addImage("fire.png"));
+	addChild(explode_particle);
 }
 
 void Tank::update(float t)

@@ -72,6 +72,7 @@ public:
 
 	Text* P1score;
 	TextBMFont* P2score;
+	Text* remain_enemy_text;
 
 	bool stopped;
 

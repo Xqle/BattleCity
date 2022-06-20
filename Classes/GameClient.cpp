@@ -92,6 +92,9 @@ bool GameClient::init()
 	P1score = (Text*)(scoreUI->getChildByName("player1_score_label"));
 	P1score->setString(std::to_string(m_score));
 
+	remain_enemy_text = (Text*)(scoreUI->getChildByName("remain_text"));
+	remain_enemy_text->setString(std::to_string(AI_remain_num));
+
 	// 粒子特效
 	if (cur_map_level == 3)
 	{
@@ -138,6 +141,8 @@ void GameClient::update(float delta)
 	AI_update(delta);	// AI补充
 	invulnerable_timer += delta;	// 无敌时间
 	P1score->setString(std::to_string(m_score));	// 分数
+	remain_enemy_text->setString(std::to_string(AI_remain_num));
+
  
 	// 坦克升级
 	if (m_tank->getLevel() < std::min(enemy_kill / 2 + 1, MAX_LEVEL))

@@ -51,6 +51,10 @@ bool CoverScene::init()
 	key_listener->onKeyReleased = CC_CALLBACK_2(CoverScene::onKeyReleased, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
 
+	auto enter_text = (Text*)(coverUI->getChildByName("press_enter"));
+	auto blink = Blink::create(10, 10);
+	enter_text->runAction(blink);
+
 	return true;
 }
 
