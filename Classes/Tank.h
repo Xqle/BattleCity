@@ -4,6 +4,7 @@
 #include "BaseObject.h"
 #include "cocos2d.h"
 #include "cocostudio/CocoStudio.h"
+#include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
 #include "Global.h"
 #include "Bullet.h"

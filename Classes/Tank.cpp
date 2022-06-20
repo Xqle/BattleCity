@@ -115,6 +115,8 @@ void Tank::MoveRight()
 
 void Tank::Fire()
 {
+	if(this->getID() == 110)
+		CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Shooting_low.wav");	// 播放音效;
 	Vec2 position;
 	int level = this->getLevel();
 	switch (this->getDirection())
@@ -161,6 +163,9 @@ void Tank::MyDraw()
 // =======
 void Tank::Fire_high()
 {
+	if (this->getID() == 110)
+		CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Shooting_low.wav");	// 播放音效;
+
 	Bullet* bullet1;
 	Bullet* bullet2;
 	Bullet* bullet3;

@@ -30,6 +30,11 @@ bool GameClient::init()
 	}
 	is_success = false;
 	is_gameover = false;
+	seffect_is_play = false;
+	gameovertimer = 0;
+
+	// CocosDenshion::SimpleAudioEngine::getInstance()->setBackgroundMusicVolume(0.2f);
+	// CocosDenshion::SimpleAudioEngine::getInstance()->setEffectsVolume(0.2f);
 
 	// 背景
 	m_visibleSize = Director::getInstance()->getVisibleSize();
@@ -107,27 +112,33 @@ Scene* GameClient::createScene()
 /****		逻辑相关		****/
 void GameClient::update(float delta)
 {
-	AI_update(delta);
+	// 判断游戏结束
+	if (is_gameover || is_success)
+	{
+		gameovertimer += delta;
+		if (!seffect_is_play)
+		{
+			seffect_is_play = true;
+			CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+			if (is_success) CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Winner.mp3");
+			else CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Loser.mp3");
+		}
+		if (gameovertimer > 8.0f)
+		{
+			if (is_success) success();
+			else gameover();
+		}
+		return;
+	}
+
+	AI_update(delta);	// AI补充
 	invulnerable_timer += delta;	// 无敌时间
 	P1score->setString(std::to_string(m_score));	// 分数
-	//P1score->setString("123151");
-
-
-	// 胜利判断
-	if(is_success)
-	{
-		success();
-	}
-
-	// 失败判断
-	if (is_gameover)
-	{
-		gameover();
-	}
-
+ 
 	// 坦克升级
 	if (m_tank->getLevel() < std::min(enemy_kill / 2 + 1, MAX_LEVEL))
 	{
+		CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("Upgrade.wav");	// 升级音效
 		m_tank->setLevel(std::min(enemy_kill / 2 + 1, MAX_LEVEL));
 		m_tank->MyDraw();
 	}
@@ -149,6 +160,9 @@ void GameClient::update(float delta)
 	else if (mvkey == 'A') m_tank->MoveLeft();
 	else if (mvkey == 'S') m_tank->MoveDown();
 	else if (mvkey == 'D') m_tank->MoveRight();
+
+	bool tank_is_hit[20];
+	memset(tank_is_hit, 0, sizeof tank_is_hit);
 
 	// 坦克与 坦克/物品 的碰撞检测
 	for (int i = 0; i < m_tankList.size(); i++)
@@ -261,7 +275,6 @@ void GameClient::update(float delta)
 
 			// 子弹与守护目标
 			if (bullet->getRect().intersectsRect(m_bird_rect))
-
 			{
 				m_deleteBulletList.pushBack(bullet);		// 子弹消除
 				// 更换守护目标图像
@@ -291,6 +304,7 @@ void GameClient::update(float delta)
 			for (int k = 0; k < m_tankList.size() && !is_hit; k++)		// tank子弹击中则is_hit为true
 			{
 				// 子弹与坦克
+				if (tank_is_hit[k]) continue;	// 该坦克已被其他子弹命中
 				auto tank_another = m_tankList.at(k);
 				if (tank->getID() == tank_another->getID()) continue;
 				// AI和AI不相互影响
@@ -310,6 +324,7 @@ void GameClient::update(float delta)
 						m_deleteTankList.pushBack(tank_another);
 						enemy_kill++;
 					}
+					tank_is_hit[k] = true;
 					is_hit = true;	// tank的这颗子弹已经打完
 				}
 
@@ -343,8 +358,11 @@ void GameClient::update(float delta)
 		{
 			auto brick = m_deleteBrickList.at(0);
 			brick->Blast();
+			// 播放音效
+			CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Block_destroyed.wav");
+			// 删除的方块对应的mapnode状态要改为可通过
 			int x = brick->getPositionX(), y = brick->getPositionY();
-			m_map[x2i(x)][y2j(y)].status = ACCESS;	// 删除的方块对应的mapnode状态要改为可通过
+			m_map[x2i(x)][y2j(y)].status = ACCESS;	
 			m_deleteBrickList.eraseObject(brick);
 			m_bgList.eraseObject(brick);
 		}
@@ -356,6 +374,8 @@ void GameClient::update(float delta)
 			tank->Blast();
 			if (tank->getID() != PLAYER_TAG)
 			{
+				// 播放音效
+				CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Battle City SFX (13).wav");
 				AI_ingame_num--;		// 如果是AI，则减少游戏内AI数量
 				AI_remain_num--;		// 如果是AI，减少剩余AI数量	
 				add_score(m_tank->getLevel() * 10);				// 加分
@@ -365,6 +385,7 @@ void GameClient::update(float delta)
 			}
 			else if (tank->getID() == PLAYER_TAG)
 			{
+				CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Died.wav");	// 播放音效
 				if (--player_life > 0)
 				{
 					m_tank = Tank::create(PLAYER_TAG, player_spawnpointX, player_spawnpointY, TANK_UP, 2);
@@ -382,26 +403,21 @@ void GameClient::update(float delta)
 		m_deleteBrickList.clear();
 		m_deleteTankList.clear();
 	}
-
-	Label* tank_pos = NULL;
-	// debug，输出坦克坐标
-	std::string tankX = std::to_string(m_tank->getRect().getMidX());
-	std::string tankY = std::to_string(m_tank->getRect().getMidY());
-	std::string print_string = tankX + " " + tankY;
-
-	if (tank_pos == NULL)
-	{
-		tank_pos = Label::createWithTTF(print_string, "fonts/arial.ttf", 20);
-		tank_pos->setPosition(Vec2(150, 400));
-		this->addChild(tank_pos, 1);
-	}
-	tank_pos->setString(print_string);
-
 }
+
 void GameClient::success()
 {
 	this->unscheduleUpdate();
-	if(cur_map_level == 1)
+	this->unscheduleAllCallbacks();
+	this->unscheduleAllSelectors();
+	for (int i = 0; i < m_tankList.size(); i++)
+	{
+		auto tank = m_tankList.at(i);
+		tank->unscheduleUpdate();
+		tank->stopAllActions();
+	}
+
+	if(cur_map_level == 3)
 		// 游戏胜利
 		Director::getInstance()->replaceScene(CCTransitionCrossFade::create(0.5f, VictoryScene::createScene()));
 	else
@@ -411,6 +427,7 @@ void GameClient::success()
 		Director::getInstance()->popScene();
 	}
 }
+
 void GameClient::gameover()
 {
 	// 游戏结束
@@ -424,10 +441,6 @@ void GameClient::gameover()
 		tank->unscheduleUpdate();
 		tank->stopAllActions();
 	}
-
-
-	CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
-	CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("SoundEffect/Loser.mp3");
 
 	// 打印“You Lose!”
 	cocos2d::Label* tip;

@@ -47,7 +47,7 @@ void VictoryScene::loading_func(float dt)
 	}
 	else
 	{
-		if (victory_flag == 2)
+		if (victory_flag == 2 && m_score >= 480)
 		{
 			victory_flag = 3;
 			auto title_loading = (ImageView*)(LoadingUI->getChildByName("star1"));
@@ -57,17 +57,13 @@ void VictoryScene::loading_func(float dt)
 		}
 		else
 		{
-			if (victory_flag == 3)
+			if (victory_flag == 3 && m_score >= 640)
 			{
 				victory_flag = 4;
 				auto title_loading = (ImageView*)(LoadingUI->getChildByName("star2"));
 				title_loading->setVisible(false);
 				title_loading = (ImageView*)(LoadingUI->getChildByName("star3"));
 				title_loading->setVisible(true);
-			}
-			else
-			{
-				// 显示分数，还有一些按钮
 			}
 		}
 	}

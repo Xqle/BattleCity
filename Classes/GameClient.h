@@ -25,7 +25,7 @@ using namespace cocos2d;
 
 // AI
 #define AI_TAG 111
-#define MAX_AI_NUM 5
+#define MAX_AI_NUM 1
 #define MAX_INGAME_AI_NUM 3
 
 static int tankcount = 0;     // 记录当前坦克数
@@ -140,9 +140,11 @@ private:
 	// 键盘按键
 	int keys[128];
 
-	// 失败判断
+	// 胜利/失败
 	bool is_success;
 	bool is_gameover;
+	bool seffect_is_play;
+	double gameovertimer;
 };
 
 #endif
