@@ -88,9 +88,10 @@ bool GameClient::init()
 	// 重置计分板
 
 	// scoreUI 下的text
-	P1score = (TextBMFont*)(scoreUI->getChildByName("Player1_score_text"));
-	P1score->setText(std::to_string(m_score));
-	scoreUI->getChildByName("Player2_score_text")->setVisible(false);
+	P1score = (Text*)(scoreUI->getChildByName("player1_score_label"));
+	P1score->setString(std::to_string(m_score));
+	//P1score->setString("123151");
+	//scoreUI->getChildByName("Player2_score_text")->setVisible(false);
 
 	return true;
 }
@@ -108,7 +109,9 @@ void GameClient::update(float delta)
 {
 	AI_update(delta);
 	invulnerable_timer += delta;	// 无敌时间
-	P1score->setText(std::to_string(m_score));	// 分数
+	P1score->setString(std::to_string(m_score));	// 分数
+	//P1score->setString("123151");
+
 
 	// 胜利判断
 	if(is_success)

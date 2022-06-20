@@ -21,7 +21,11 @@
     <GuidesList />
   </GuidesProject>
   <GuidesProject>
-    <Project>Battle_City_UI_5</Project>
+    <Project>victoryUI</Project>
+    <GuidesList />
+  </GuidesProject>
+  <GuidesProject>
+    <Project>loadingUI</Project>
     <GuidesList />
   </GuidesProject>
 </ArrayOfGuidesProject>
