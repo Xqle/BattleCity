@@ -23,7 +23,7 @@ public:
     cocos2d::ui::Widget* LoadingUI;
 
 private:
-
+    int victory_flag = 1;
 };
 
 

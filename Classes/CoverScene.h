@@ -4,6 +4,7 @@
 #include "cocos2d.h"
 #include "cocostudio/CocoStudio.h"
 #include "ui/CocosGUI.h"
+#include "LoadingScene.h"
 
 USING_NS_CC;
 using namespace cocos2d::ui;
@@ -21,7 +22,6 @@ public:
     void playbtnContinueCallback(Ref* pSender, Widget::TouchEventType type);
     void onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event);
     
-    void loading_func(float dt);
 
     cocos2d::ui::Widget* coverUI;
 

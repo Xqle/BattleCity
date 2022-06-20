@@ -1,6 +1,5 @@
 #include "LoadingScene.h"
 
-int loading_flag = 1;
 LoadingScene::LoadingScene()
 {
 
@@ -26,14 +25,14 @@ bool LoadingScene::init()
 	}
 	LoadingUI = GUIReader::getInstance()->widgetFromJsonFile("loadingUI/loadingUI.json");
 	addChild(LoadingUI, 100);
-	auto key_listener = EventListenerKeyboard::create();
+	//auto key_listener = EventListenerKeyboard::create();
 	//key_listener->onKeyReleased = CC_CALLBACK_2(LoadingScene::onKeyReleased, this);
-	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
-
-	if (loading_flag < 5)
-		this->schedule(schedule_selector(LoadingScene::loading_func), 0.3f);
+	//Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
 
 	loading_flag = 1;
+	if (loading_flag < 5)
+		this->schedule(schedule_selector(LoadingScene::loading_func), 0.5f);
+
 	return true;
 }
 
@@ -67,7 +66,10 @@ void LoadingScene::loading_func(float dt)
 			}
 			else
 			{
-				Director::getInstance()->replaceScene(CCTransitionCrossFade::create(0.3f, GameClient::createScene()));
+				Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.3f, GameClient::createScene()));
+				loading_flag = 1; 
+				auto title_loading = (Label*)(LoadingUI->getChildByName("Loading3"));
+				title_loading->setVisible(false);
 			}
 		}
 	}

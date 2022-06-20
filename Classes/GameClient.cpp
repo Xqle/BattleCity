@@ -5,7 +5,6 @@
 using namespace cocos2d::ui;
 using namespace cocostudio;
 
-Label* tank_pos = NULL;
 GameClient::GameClient()
 {
 
@@ -23,11 +22,15 @@ bool GameClient::init()
 		return false;
 	}
 
-	for (int i = 0; i < MAX_INGAME_AI_NUM; i++)
+	// 一些变量
+	for (int i = 0; i < MAX_AI_NUM; i++)
 	{
 		m_draw[i] = DrawNode::create();
 		this->addChild(m_draw[i], 2);
 	}
+	is_success = false;
+	is_gameover = false;
+
 	// 背景
 	m_visibleSize = Director::getInstance()->getVisibleSize();
 	createBackGround();
@@ -37,11 +40,6 @@ bool GameClient::init()
 	m_tankList.pushBack(m_tank); 
 	this->addChild(m_tank);
 
-	// A*目的地设置
-	int m_x = m_tank->getPositionX(), m_y = m_tank->getPositionY();
-	m_map[x2i(m_x) + 3][y2j(m_y) - 3].status = DESTINATION;
-	m_destination = &m_map[x2i(m_x) + 3][y2j(m_y) - 3];
-	
 	// 守护目标
 	m_bird = Sprite::create("Chapter12/tank/tile.png", Rect(160, 0, 32, 32));	// 守护目标
 	m_bird->setPosition(m_bird_spawnpointX, m_bird_spawnpointY);
@@ -66,6 +64,7 @@ bool GameClient::init()
 	//auto touch_listener = EventListenerTouchOneByOne::create();
 	//touch_listener->onTouchEnded = CC_CALLBACK_2(GameClient)
 
+	// 背景音乐
 	CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("minecraft.mp3", true);
 
 	// UI
@@ -87,17 +86,11 @@ bool GameClient::init()
 	Pausebtn->addTouchEventListener(CC_CALLBACK_2(GameClient::pressPauseButton, this));
 
 	// 重置计分板
-	for (int i = 0; i < 10; i++)
-	{
-		score_list[i] = 0;
-	}
 
 	// scoreUI 下的text
 	P1score = (TextBMFont*)(scoreUI->getChildByName("Player1_score_text"));
-	P2score = (TextBMFont*)(scoreUI->getChildByName("Player2_score_text"));
-
-	P1score->setText(std::to_string(score_list[0]));
-	P2score->setText(std::to_string(score_list[1]));
+	P1score->setText(std::to_string(m_score));
+	scoreUI->getChildByName("Player2_score_text")->setVisible(false);
 
 	return true;
 }
@@ -110,171 +103,25 @@ Scene* GameClient::createScene()
 	return scene;
 }
 
-int GameClient::aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag)
-{
-	openList* open = new openList;
-	open->next = nullptr;
-	open->openNode = origin;
-	closedList* close = new closedList;
-	close->next = nullptr;
-	close->closedNode = nullptr;
-	//循环检验4个方向的相邻节点
-	while (checkNeighboringNodes(map, open, open->openNode, destination))
-	{
-		//从OPEN表中选取节点插入CLOSED表
-		insertNodeToClosedList(close, open);
-		// 寻路失败
-		if (open == nullptr)
-		{
-			log("No Way!\n");
-			break;
-		}
-		//若终点在OPEN表中，表明寻路成功
-		if (open->openNode->status == DESTINATION)
-		{
-			mapNode* tempNode = open->openNode;
-			//调用moveOnPath（）函数控制精灵在路径上移动
-			moveOnPath(tempNode, tag);
-			break;
-		}
-	}
-	return 0;
-}
-
-void GameClient::moveOnPath(mapNode* tempNode, int tag)
-{
-	//声明存储路径坐标的结构体
-	struct pathCoordinate { int x; int y; };
-	//分配路径坐标结构体数组
-	pathCoordinate* path = new pathCoordinate[MAP_WIDTH * MAP_HEIGHT];
-	//利用父节点信息逆序存储路径坐标
-	int loopNum = 0;
-	while (tempNode != nullptr)
-	{
-		path[loopNum].x = tempNode->xCoordinate;
-		path[loopNum].y = tempNode->yCoordinate;
-		loopNum++;
-		tempNode = tempNode->parent;
-	}
-	//将笑脸精灵的坐标存为绘制线段起点
-	auto tank = (Tank*)this->getChildByTag(tag);
-	int fromX = tank->getPositionX();
-	int fromY = tank->getPositionY();
-	//声明动作向量存储动作序列
-	Vector<FiniteTimeAction*> actionVector;
-	//从结构体数组尾部开始扫描
-	int dir = tank->getDirection();
-	for (int j = loopNum - 2; j >= 0; j--)
-	{
-		//将地图数组坐标转化为屏幕实际坐标
-		int realX = (path[j].x + 0.5) * UNIT;
-		int realY = m_visibleSize.height - (path[j].y + 0.5) * UNIT;
-
-		// 转身
-		if (realX - fromX > 0 && dir != TANK_RIGHT)
-		{
-			dir = TANK_RIGHT;
-			actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnRight, this, tank)));
-		}
-		else if (realX - fromX < 0 && dir != TANK_LEFT)
-		{
-			dir = TANK_LEFT;
-			actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnLeft, this, tank)));
-		}
-		else if (realY - fromY > 0 && dir != TANK_UP)
-		{
-			dir = TANK_UP;
-			actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnUp, this, tank)));
-
-		}
-		else if (realY - fromY < 0 && dir != TANK_DOWN)
-		{
-			dir = TANK_DOWN;
-			actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnDown, this, tank)));
-		}
-		//创建移动动作并存入动作向量
-		auto moveAction = MoveTo::create(0.2, Vec2(realX, realY));
-		actionVector.pushBack(moveAction);
-
-
-
-		//绘制从起点到下一个地图单元的线段
-		// m_draw[tag - AI_TAG]->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
-		//将当前坐标保存为下一次绘制的起点
-		fromX = realX;
-		fromY = realY;
-	}
-	//创建动作序列
-	auto actionSequence = Sequence::create(actionVector);
-	//笑脸精灵执行移动动作序列
-	tank->runAction(actionSequence);
-}
-
-// 重置m_map_t的值，防止不同AI的A*算法相互影响
-void GameClient::mapcopy()
-{
-	for (int i = 0; i < MAP_WIDTH; i++)
-		for (int j = 0; j < MAP_HEIGHT; j++)
-			m_map_t[i][j] = m_map[i][j];
-}
-
-void GameClient::AI_init()
-{
-	AI_update_delta = 0;
-	AI_next_offset = 0;
-	AI_remain_num = MAX_AI_NUM;
-	AI_ingame_num = 0;
-}
-
-void GameClient::AI_fill()
-{
-	// if (AI_remain_num < MAX_INGAME_AI_NUM) return;	// 剩余AI数量不足
-
-	// 场上AI数量不够，补充直到满或者没有AI
-	while (AI_ingame_num < MAX_INGAME_AI_NUM && AI_ingame_num < AI_remain_num)
-	{
-		auto AI_tank = Tank::create(AI_TAG + AI_next_offset, AI_spawnpointX[AI_next_offset % MAX_INGAME_AI_NUM], AI_spawnpointY, 1, 1);
-		AI_tank->setTag(AI_TAG + AI_next_offset);
-		m_tankList.pushBack(AI_tank);
-		AI_next_offset++;
-		AI_ingame_num++;
-		this->addChild(AI_tank);
-
-		// A*算法寻路
-		int x = AI_tank->getPositionX(), y = AI_tank->getPositionY();
-		// log("%d %d %d %d\n", x, y, x2i(x), y2j(y));
-		mapcopy();	// 重置m_map_t，防止不同AI的A*算法相互影响f、g等值
-		auto m_origin = &m_map_t[x2i(x)][y2j(y)];
-		aStar(m_map_t, m_origin, m_destination, AI_tank->getID());
-	}
-}
-
-void GameClient::AI_update(float delta)
-{
-	AI_update_delta += delta;
-	if (AI_update_delta > 1.0f)
-	{
-		AI_update_delta = 0;
-		// 补充AI
-		AI_fill();
-		// 自动开火
-		for (int i = 0; i < m_tankList.size(); i++)
-		{
-			auto tank = m_tankList.at(i);
-			if (tank->getID() == PLAYER_TAG) continue;
-			if(tank->getID() == AI_TAG)	
-				log("%lf %lf\n", tank->getPositionX(), tank->getPositionY());
-
-			tank->Fire();
-		}
-	}
-}
-
+/****		逻辑相关		****/
 void GameClient::update(float delta)
 {
 	AI_update(delta);
 	invulnerable_timer += delta;	// 无敌时间
-	
+	P1score->setText(std::to_string(m_score));	// 分数
+
+	// 胜利判断
+	if(is_success)
+	{
+		success();
+	}
+
+	// 失败判断
+	if (is_gameover)
+	{
+		gameover();
+	}
+
 	// 坦克升级
 	if (m_tank->getLevel() < std::min(enemy_kill / 2 + 1, MAX_LEVEL))
 	{
@@ -301,7 +148,7 @@ void GameClient::update(float delta)
 	else if (mvkey == 'D') m_tank->MoveRight();
 
 	// 坦克与 坦克/物品 的碰撞检测
-	for (int i = 0;i < m_tankList.size(); i++)
+	for (int i = 0; i < m_tankList.size(); i++)
 	{
 		auto nowTank = m_tankList.at(i);
 		// 坦克与守护目标
@@ -404,11 +251,11 @@ void GameClient::update(float delta)
 
 		// 子弹与 坦克/子弹/砖块 的碰撞
 		auto tank = m_tankList.at(i);
-		for (int j = 0; j < tank->getBulletList().size(); j ++)		
+		for (int j = 0; j < tank->getBulletList().size(); j++)
 		{
 			auto bullet = tank->getBulletList().at(j);
 			bool is_hit = false;
-			
+
 			// 子弹与守护目标
 			if (bullet->getRect().intersectsRect(m_bird_rect))
 
@@ -419,6 +266,7 @@ void GameClient::update(float delta)
 				m_bird = Sprite::create("Chapter12/tank/tile.png", Rect(192, 0, 32, 32));	// 死亡的守护目标
 				m_bird->setPosition(m_bird_spawnpointX, m_bird_spawnpointY);
 				this->addChild(m_bird, 2);
+				is_gameover = true;
 				is_hit = true;
 			}
 
@@ -435,9 +283,9 @@ void GameClient::update(float delta)
 					m_deleteBrickList.pushBack(brick);		// 砖块消除
 				}
 			}
-			
+
 			// 子弹与坦克 / 子弹
-			for (int k = 0; k < m_tankList.size() && !is_hit; k ++)		// tank子弹击中则is_hit为true
+			for (int k = 0; k < m_tankList.size() && !is_hit; k++)		// tank子弹击中则is_hit为true
 			{
 				// 子弹与坦克
 				auto tank_another = m_tankList.at(k);
@@ -479,7 +327,7 @@ void GameClient::update(float delta)
 		}
 
 		// 清除删除子弹列表
-		while(m_deleteBulletList.size())
+		while (m_deleteBulletList.size())
 		{
 			auto bullet = m_deleteBulletList.at(0);
 			bullet->Blast();
@@ -488,7 +336,7 @@ void GameClient::update(float delta)
 		}
 
 		// 清除删除砖块列表
-		while(m_deleteBrickList.size())
+		while (m_deleteBrickList.size())
 		{
 			auto brick = m_deleteBrickList.at(0);
 			brick->Blast();
@@ -499,7 +347,7 @@ void GameClient::update(float delta)
 		}
 
 		// 清除删除坦克列表
-		while(m_deleteTankList.size())
+		while (m_deleteTankList.size())
 		{
 			auto tank = m_deleteTankList.at(0);
 			tank->Blast();
@@ -507,8 +355,12 @@ void GameClient::update(float delta)
 			{
 				AI_ingame_num--;		// 如果是AI，则减少游戏内AI数量
 				AI_remain_num--;		// 如果是AI，减少剩余AI数量	
+				add_score(m_tank->getLevel() * 10);				// 加分
+				// AI全部杀完，游戏胜利
+				if (AI_remain_num == 0) 
+					is_success = true;	
 			}
-			else if (tank->getID() == PLAYER_TAG )
+			else if (tank->getID() == PLAYER_TAG)
 			{
 				if (--player_life > 0)
 				{
@@ -517,6 +369,7 @@ void GameClient::update(float delta)
 					enemy_kill = 0;
 					this->addChild(m_tank);
 				}
+				else is_gameover = true;	// 玩家死亡，游戏结束
 			}
 			m_deleteTankList.eraseObject(tank);
 			m_tankList.eraseObject(tank);
@@ -527,6 +380,7 @@ void GameClient::update(float delta)
 		m_deleteTankList.clear();
 	}
 
+	Label* tank_pos = NULL;
 	// debug，输出坦克坐标
 	std::string tankX = std::to_string(m_tank->getRect().getMidX());
 	std::string tankY = std::to_string(m_tank->getRect().getMidY());
@@ -542,12 +396,220 @@ void GameClient::update(float delta)
 
 }
 
+void GameClient::success()
+{
+	this->unscheduleUpdate();
+	if(cur_map_level == 1)
+		// 游戏胜利
+		Director::getInstance()->replaceScene(CCTransitionCrossFade::create(0.5f, VictoryScene::createScene()));
+	else
+	{
+		// 下一关
+		cur_map_level++;
+		Director::getInstance()->popScene();
+	}
+}
+
+void GameClient::gameover()
+{
+	// 游戏结束
+	this->unscheduleUpdate();
+	cur_map_level = 1;
+	m_score = 0;
+	Director::getInstance()->replaceScene(CCTransitionCrossFade::create(0.5f, GameClient::createScene()));
+}
+
+/****		A* 算法相关			****/
+int GameClient::aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag)
+{
+	openList* open = new openList;
+	open->next = nullptr;
+	open->openNode = origin;
+	closedList* close = new closedList;
+	close->next = nullptr;
+	close->closedNode = nullptr;
+
+	// aStar_offset = (tag - AI_TAG) % 3;
+	//循环检验4个方向的相邻节点
+	while (checkNeighboringNodes(map, open, open->openNode, destination))
+	{
+		//从OPEN表中选取节点插入CLOSED表
+		insertNodeToClosedList(close, open);
+		// 寻路失败
+		if (open == nullptr)
+		{
+			log("No Way!\n");
+			break;
+		}
+		//若终点在OPEN表中，表明寻路成功
+		if (open->openNode->status == DESTINATION)
+		{
+			mapNode* tempNode = open->openNode;
+			//调用moveOnPath（）函数控制精灵在路径上移动
+			moveOnPath(tempNode, tag);
+			break;
+		}
+	}
+	return 0;
+}
+void GameClient::moveOnPath(mapNode* tempNode, int tag)
+{
+	//声明存储路径坐标的结构体
+	struct pathCoordinate { int x; int y; };
+	//分配路径坐标结构体数组
+	pathCoordinate* path = new pathCoordinate[MAP_WIDTH * MAP_HEIGHT];
+	//利用父节点信息逆序存储路径坐标
+	int loopNum = 0;
+	while (tempNode != nullptr)
+	{
+		path[loopNum].x = tempNode->xCoordinate;
+		path[loopNum].y = tempNode->yCoordinate;
+		loopNum++;
+		tempNode = tempNode->parent;
+	}
+	//将笑脸精灵的坐标存为绘制线段起点
+	auto tank = (Tank*)this->getChildByTag(tag);
+	int fromX = tank->getPositionX();
+	int fromY = tank->getPositionY();
+	//声明动作向量存储动作序列
+	Vector<FiniteTimeAction*> actionVector;
+	//从结构体数组尾部开始扫描
+	int dir = tank->getDirection();
+	for (int j = loopNum - 2; j >= 0; j--)
+	{
+		//将地图数组坐标转化为屏幕实际坐标
+		int realX = (path[j].x + 0.5) * UNIT;
+		int realY = m_visibleSize.height - (path[j].y + 0.5) * UNIT;
+
+		// 转身
+		if (realX - fromX > 0 && dir != TANK_RIGHT)
+		{
+			dir = TANK_RIGHT;
+			actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnRight, this, tank)));
+		}
+		else if (realX - fromX < 0 && dir != TANK_LEFT)
+		{
+			dir = TANK_LEFT;
+			actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnLeft, this, tank)));
+		}
+		else if (realY - fromY > 0 && dir != TANK_UP)
+		{
+			dir = TANK_UP;
+			actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnUp, this, tank)));
+
+		}
+		else if (realY - fromY < 0 && dir != TANK_DOWN)
+		{
+			dir = TANK_DOWN;
+			actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnDown, this, tank)));
+		}
+		//创建移动动作并存入动作向量
+		auto moveAction = MoveTo::create(0.2, Vec2(realX, realY));
+		actionVector.pushBack(moveAction);
+
+		//绘制从起点到下一个地图单元的线段
+		m_draw[tag - AI_TAG]->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
+		//将当前坐标保存为下一次绘制的起点
+		fromX = realX;
+		fromY = realY;
+	}
+
+	if((tag - AI_TAG) % MAX_INGAME_AI_NUM == 0)
+		actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnRight, this, tank)));
+	else if ((tag - AI_TAG) % MAX_INGAME_AI_NUM == 1)
+		actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnDown, this, tank)));
+	else if ((tag - AI_TAG) % MAX_INGAME_AI_NUM == 2)
+		actionVector.pushBack(CallFunc::create(CC_CALLBACK_0(GameClient::TurnLeft, this, tank)));
+
+	//创建动作序列
+	auto actionSequence = Sequence::create(actionVector);
+	//笑脸精灵执行移动动作序列
+	tank->runAction(actionSequence);
+}
+// 重置m_map_t的值，防止不同AI的A*算法相互影响
+void GameClient::mapcopy()
+{
+	for (int i = 0; i < MAP_WIDTH; i++)
+		for (int j = 0; j < MAP_HEIGHT; j++)
+			m_map_t[i][j] = m_map[i][j];
+}
+/****							****/
+
+
+/****		AI相关			****/
+void GameClient::AI_init()
+{
+	AI_update_delta = 0;
+	AI_next_offset = 0;
+	AI_remain_num = MAX_AI_NUM;
+	AI_ingame_num = 0;
+	/*for (int i = 0; i < MAX_INGAME_AI_NUM; i++)
+	{
+		m_map[AI_destinationX[i]][AI_destinationY[i]].status = DESTINATION_1 + i;
+		m_destination[i] = &m_map[AI_destinationX[i]][AI_destinationY[i]];
+	}*/
+}
+
+void GameClient::AI_fill()
+{
+	// if (AI_remain_num < MAX_INGAME_AI_NUM) return;	// 剩余AI数量不足
+
+	// 场上AI数量不够，补充直到满或者没有AI
+	while (AI_ingame_num < MAX_INGAME_AI_NUM && AI_ingame_num < AI_remain_num)
+	{
+		auto AI_tank = Tank::create(AI_TAG + AI_next_offset, AI_spawnpointX[AI_next_offset % MAX_INGAME_AI_NUM], AI_spawnpointY, 1, 1);
+		AI_tank->setTag(AI_TAG + AI_next_offset);
+		m_tankList.pushBack(AI_tank);
+		AI_next_offset++;
+		AI_ingame_num++;
+		this->addChild(AI_tank);
+
+		// A*算法寻路
+		int x = AI_tank->getPositionX(), y = AI_tank->getPositionY();
+		// log("%d %d %d %d\n", x, y, x2i(x), y2j(y));
+		mapcopy();	// 重置m_map_t，防止不同AI的A*算法相互影响f、g等值
+
+		int idx = (AI_next_offset - 1) % MAX_INGAME_AI_NUM;
+		auto m_origin = &m_map_t[x2i(x)][y2j(y)];
+		m_map_t[AI_destinationX[idx]][AI_destinationY[idx]].status = DESTINATION;
+		m_destination[idx] = &m_map_t[AI_destinationX[idx]][AI_destinationY[idx]];
+		aStar(m_map_t, m_origin, m_destination[idx], AI_tank->getID());
+	}
+}
+
+void GameClient::AI_update(float delta)
+{
+	AI_update_delta += delta;
+	if (AI_update_delta > 1.0f)
+	{
+		AI_update_delta = 0;
+		// 补充AI
+		AI_fill();
+		// 自动开火
+		for (int i = 0; i < m_tankList.size(); i++)
+		{
+			auto tank = m_tankList.at(i);
+			if (tank->getID() == PLAYER_TAG) continue;
+			if(tank->getID() == AI_TAG)	
+				log("%lf %lf\n", tank->getPositionX(), tank->getPositionY());
+
+			tank->Fire();
+		}
+	}
+}
+/****						****/
+
+
 // 初始化地图
 void GameClient::createBackGround()
 {
 	auto map = TMXTiledMap::create("Chapter12/tank/map.tmx");
-	m_mapLayer = map->getLayer("brick");
-	m_mapLayer->setVisible(false);
+	// 隐藏其他层
+	for (int i = 1; i <= MAX_MAP_LEVEL; i++)
+		map->getLayer("brick" + std::to_string(i))->setVisible(false);
+	
+	m_mapLayer = map->getLayer("brick" + std::to_string(cur_map_level));
+	// m_mapLayer->setVisible(false);
 	this->addChild(map, 10);
 
 	//根据地图宽、高分配数组空间
@@ -592,25 +654,8 @@ void GameClient::createBackGround()
 	}
 }
 
-// 绘制单个回字砖块
-//void GameClient::drawBigBG(Vec2 position)
-//{
-//	for (int i = -2; i < 4;i ++)
-//	{
-//		for (int j = -2;j < 4;j ++)
-//		{
-//			if ((i == 1)&&(j == 0) || (i == 0)&&(j == 0) || (i == 1)&&(j == 1) || (i == 0)&&(j == 1))
-//			{
-//				// 中间留空形成回字
-//				continue;
-//			}
-//			auto brick = Brick::create(Vec2(position.x + (0.5 - i) * 16, position.y + (0.5 - j) * 16));
-//			m_bgList.pushBack(brick);
-//			this->addChild(brick, 2);
-//		}
-//	}
-//}
 
+/****		键盘相关		****/
 char GameClient::maxValKey()
 {
 	char ch = ' ';
@@ -620,7 +665,6 @@ char GameClient::maxValKey()
 	if (keys['D'] > keys[ch]) ch = 'D';
 	return ch;
 }
-
 void GameClient::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
 {
 	switch (keyCode)
@@ -651,7 +695,6 @@ void GameClient::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
 		break;
 	}
 }
-
 void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 {
 	switch (keyCode)
@@ -698,7 +741,10 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 	break;
 	}
 }
+/****						****/
 
+
+/****		按键相关		****/
 void GameClient::pressPauseButton(Ref* pSender, Widget::TouchEventType type)
 {
 	Size visibleSize = Director::getInstance()->getVisibleSize();
@@ -723,19 +769,10 @@ void GameClient::pressReplayButton(Ref* pSender, Widget::TouchEventType type)
 	if (type == ui::Widget::TouchEventType::ENDED)
 	{
 		//reset score board
-		for (int i = 0; i < 10; i++)
-		{
-			score_list[i] = 0;
-		}
-		Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.5f, this->createScene()));
+		m_score = 0;
+		cur_map_level = 1;
+		Director::getInstance()->popScene();
+		// Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.5f, this->createScene()));
 	}
 }
-
-
-
-
-int GameClient::get_score(int target, int score)
-{
-	if (target >= 0 && target <= 9)
-		return score_list[target];
-}
+/****						****/

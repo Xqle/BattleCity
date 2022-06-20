@@ -3,7 +3,7 @@
 #include "ui/CocosGUI.h"
 #include "cocos2d.h"
 #include "cocostudio/CocoStudio.h"
-#include "GameClient.h"
+
 int Loadingflag = 1;
 using namespace cocos2d::ui;
 
@@ -32,58 +32,13 @@ void CoverScene::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 	{
 	case cocos2d::EventKeyboard::KeyCode::KEY_ENTER:
 	{
-		//auto coverpanel = ()coverUI->getChildByTag(16);
-		auto title_start = (Label*)(coverUI->getChildByName("start_menu"));
-		title_start->setVisible(false);
-
-		auto title_loading = (Label*)(coverUI->getChildByName("Loading1"));
-		title_loading->setVisible(true);
-
-		if(Loadingflag<=4)
-		this->schedule(schedule_selector(CoverScene::loading_func), 0.5f);
+		Director::getInstance()->pushScene(LoadingScene::createScene());
 	}
 
 	break;
 	}
 }
-void CoverScene::loading_func(float dt)
-{
-	if (Loadingflag == 1)
-	{
 
-		Loadingflag++;
-	}
-	else
-	{
-		if (Loadingflag == 2)
-		{
-			auto title_loading = (Label*)(coverUI->getChildByName("Loading1"));
-			title_loading->setVisible(false);
-			title_loading = (Label*)(coverUI->getChildByName("Loading2"));
-			title_loading->setVisible(true);
-			Loadingflag++;
-		}
-		else
-		{
-			if (Loadingflag == 3)
-			{
-				auto title_loading = (Label*)(coverUI->getChildByName("Loading2"));
-				title_loading->setVisible(false);
-				title_loading = (Label*)(coverUI->getChildByName("Loading3"));
-				title_loading->setVisible(true);
-				Loadingflag++;
-			}
-			else
-			{
-				Loadingflag = 1;
-				Director::getInstance()->pushScene(CCTransitionCrossFade::create(0.5f, GameClient::createScene()));
-
-			}
-		}
-		
-	}
-	return;
-}
 bool CoverScene::init()
 {
 	if (!Scene::init())

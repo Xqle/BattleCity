@@ -54,6 +54,7 @@ bool ifChangeParent(mapNode** map, int x, int y, int i, mapNode * node);
 
 bool checkNeighboringNodes(mapNode** map, openList* open, mapNode* node, mapNode* destination);
 
+extern int aStar_offset;
 
 #endif
 

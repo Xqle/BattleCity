@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __CoverScene__H__
-#define __CoverScene__H__
+#ifndef __LOADINGSCENE__H__
+#define __LOADINGSCENE__H__
 #include "cocos2d.h"
 #include "cocostudio/CocoStudio.h"
 #include "ui/CocosGUI.h"
@@ -23,7 +23,7 @@ public:
     cocos2d::ui::Widget* LoadingUI;
 
 private:
-
+    int loading_flag = 1;
 };
 
 
